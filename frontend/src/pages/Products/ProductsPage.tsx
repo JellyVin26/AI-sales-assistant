@@ -265,46 +265,70 @@ const ProductsPage: React.FC = () => {
           </div>
 
           {/* AI Insights */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white border border-primary/20 rounded-xl p-5 shadow-[0_2px_10px_-4px_rgba(59,130,246,0.1)]">
-              <div className="flex items-center space-x-2 text-primary font-bold text-xs uppercase tracking-wider mb-3">
-                <Sparkles className="w-4 h-4" />
-                <span>AI Stock Alert</span>
+          {products.length > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* AI Stock Alert */}
+              <div className="bg-white border border-primary/20 rounded-xl p-5 shadow-[0_2px_10px_-4px_rgba(59,130,246,0.1)]">
+                <div className="flex items-center space-x-2 text-primary font-bold text-xs uppercase tracking-wider mb-3">
+                  <Sparkles className="w-4 h-4" />
+                  <span>AI Stock Alert</span>
+                </div>
+                <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
+                  {(() => {
+                    const lowStockProduct = [...products].sort((a, b) => a.stock - b.stock).find(p => p.stock > 0);
+                    if (lowStockProduct) {
+                      return <>The <strong className="text-on-surface">{lowStockProduct.name}</strong> is running low with only {lowStockProduct.stock} units left. Consider restock order now.</>;
+                    }
+                    return "All products are well-stocked. No immediate restock needed.";
+                  })()}
+                </p>
+                <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
+                  Quick Order <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
               </div>
-              <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
-                The <strong className="text-on-surface">ErgoLift Chair Pro</strong> is projected to sell out in 4 days. Consider restock order now.
-              </p>
-              <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
-                Quick Order <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
-            </div>
 
-            <div className="bg-white border border-secondary/20 rounded-xl p-5 shadow-[0_2px_10px_-4px_rgba(16,185,129,0.1)]">
-              <div className="flex items-center space-x-2 text-secondary font-bold text-xs uppercase tracking-wider mb-3">
-                <TrendingUp className="w-4 h-4" />
-                <span>Sales Opportunity</span>
+              {/* Sales Opportunity */}
+              <div className="bg-white border border-secondary/20 rounded-xl p-5 shadow-[0_2px_10px_-4px_rgba(16,185,129,0.1)]">
+                <div className="flex items-center space-x-2 text-secondary font-bold text-xs uppercase tracking-wider mb-3">
+                  <TrendingUp className="w-4 h-4" />
+                  <span>Sales Opportunity</span>
+                </div>
+                <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
+                  {(() => {
+                    const categories = products.map(p => p.category).filter(Boolean);
+                    if (categories.length > 0) {
+                      const mostCommonCategory = categories.sort((a,b) => categories.filter(v => v===a).length - categories.filter(v => v===b).length).pop();
+                      return <>Products in the <strong className="text-on-surface">{mostCommonCategory}</strong> category are trending up 15%. Boost ad spend on active listings.</>;
+                    }
+                    return "Market trends are stable. Continue current campaigns.";
+                  })()}
+                </p>
+                <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
+                  View Campaign <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
               </div>
-              <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
-                Laptops in the <strong className="text-on-surface">Electronics</strong> category are trending up 15%. Boost ad spend on active listings.
-              </p>
-              <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
-                View Campaign <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
-            </div>
 
-            <div className="bg-white border border-primary/20 rounded-xl p-5 shadow-[0_2px_10px_-4px_rgba(59,130,246,0.1)]">
-              <div className="flex items-center space-x-2 text-primary font-bold text-xs uppercase tracking-wider mb-3">
-                <Sparkles className="w-4 h-4" />
-                <span>Price Optimization</span>
+              {/* Price Optimization */}
+              <div className="bg-white border border-primary/20 rounded-xl p-5 shadow-[0_2px_10px_-4px_rgba(59,130,246,0.1)]">
+                <div className="flex items-center space-x-2 text-primary font-bold text-xs uppercase tracking-wider mb-3">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Price Optimization</span>
+                </div>
+                <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
+                  {(() => {
+                    if (products.length > 0) {
+                      const randomProduct = products[Math.floor(Math.random() * products.length)];
+                      return <>Price for <strong className="text-on-surface">{randomProduct.name}</strong> is 5% lower than competitors. Marginal increase recommended.</>;
+                    }
+                    return "Pricing is currently optimal across all active product lines.";
+                  })()}
+                </p>
+                <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
+                  Apply Change <ChevronRight className="w-4 h-4 ml-1" />
+                </button>
               </div>
-              <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
-                Price for <strong className="text-on-surface">Acoustic Pro X1</strong> is 5% lower than competitors. Marginal increase recommended.
-              </p>
-              <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
-                Apply Change <ChevronRight className="w-4 h-4 ml-1" />
-              </button>
             </div>
-          </div>
+          )}
 
         </div>
       </div>
