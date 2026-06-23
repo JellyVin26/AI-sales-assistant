@@ -1,64 +1,65 @@
-import React, { useState } from 'react';
-import { Search, Filter, Download, Plus, MoreVertical, Sparkles, TrendingUp, X, Edit2 } from 'lucide-react';
-
-interface Product {
-  id: string;
-  name: string;
-  sku: string;
-  category: string;
-  price: number;
-  stock: number;
-  status: 'In Stock' | 'Low Stock' | 'Out of Stock';
-  image: string;
-  description?: string;
-}
-
-const mockProducts: Product[] = [
-  {
-    id: '1',
-    name: 'ProStream Laptop 16"',
-    sku: 'PS-16-001',
-    category: 'Electronics',
-    price: 1499.00,
-    stock: 248,
-    status: 'In Stock',
-    image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=100&q=80',
-    description: 'High-performance workstation designed for creators and developers. Features a stunning display and revolutionary chip for unprecedented processing power.'
-  },
-  {
-    id: '2',
-    name: 'Acoustic Pro X1',
-    sku: 'AP-X1-HB',
-    category: 'Electronics',
-    price: 299.00,
-    stock: 12,
-    status: 'Low Stock',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&q=80',
-  },
-  {
-    id: '3',
-    name: 'Modern Fit Blazer',
-    sku: 'AP-MB-CG-M',
-    category: 'Apparel',
-    price: 189.00,
-    stock: 52,
-    status: 'In Stock',
-    image: 'https://images.unsplash.com/photo-1507679799987-c73779587ccf?w=100&q=80',
-  },
-  {
-    id: '4',
-    name: 'ErgoLift Chair Pro',
-    sku: 'FURN-EC-02',
-    category: 'Furniture',
-    price: 549.00,
-    stock: 8,
-    status: 'Low Stock',
-    image: 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?w=100&q=80',
-  }
-];
+import React, { useState, useEffect } from 'react';
+import { Search, Filter, Download, Plus, MoreVertical, Sparkles, TrendingUp, X, Edit2, Loader2 } from 'lucide-react';
+import { productService } from '../../services';
+import type { Product } from '../../types';
 
 const ProductsPage: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await productService.getAll(1, 50);
+        setProducts(data.products);
+      } catch (err) {
+        console.error('Failed to fetch products', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleExport = () => alert('Exporting products...');
+  const handleImport = () => alert('Filters / Import coming soon...');
+  const handleAddProduct = () => alert('Add Product modal coming soon!');
+  const handleDeleteProduct = async () => {
+    if (!selectedProduct) return;
+    if (confirm(`Are you sure you want to delete ${selectedProduct.name}?`)) {
+      try {
+        await productService.delete(selectedProduct.id);
+        setProducts(products.filter(p => p.id !== selectedProduct.id));
+        setSelectedProduct(null);
+      } catch (err) {
+        alert('Failed to delete product.');
+      }
+    }
+  };
+
+  const getStatus = (stock: number) => {
+    if (stock === 0) return 'Out of Stock';
+    if (stock < 20) return 'Low Stock';
+    return 'In Stock';
+  };
+
+  const filteredProducts = products.filter(p => 
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    (p.sku && p.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (p.category && p.category.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
+  const defaultImage = 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=100&q=80';
+
+  if (loading) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
@@ -78,22 +79,24 @@ const ProductsPage: React.FC = () => {
               </div>
               <input
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="block w-full pl-10 pr-3 py-2.5 border border-outline-variant/50 rounded-lg text-sm bg-white focus:ring-1 focus:ring-primary focus:border-primary transition-colors"
                 placeholder="Search products..."
               />
             </div>
             <div className="flex space-x-3">
-              <button className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors">
+              <button onClick={handleImport} className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors">
                 <Filter className="w-4 h-4 mr-2 text-outline" />
                 Filters
               </button>
-              <button className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors">
+              <button onClick={handleExport} className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors">
                 <Download className="w-4 h-4 mr-2 text-outline" />
                 Export
               </button>
             </div>
             <div className="flex-1 sm:flex-none flex justify-end">
-              <button className="flex items-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-container transition-colors">
+              <button onClick={handleAddProduct} className="flex items-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary-container transition-colors">
                 <Plus className="w-4 h-4 mr-2" />
                 Add Product
               </button>
@@ -115,42 +118,52 @@ const ProductsPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-outline-variant/30">
-                  {mockProducts.map((product) => (
-                    <tr 
-                      key={product.id} 
-                      className={`hover:bg-surface-container-lowest transition-colors cursor-pointer ${selectedProduct?.id === product.id ? 'bg-surface-container-lowest' : ''}`}
-                      onClick={() => setSelectedProduct(product)}
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10">
-                            <img className="h-10 w-10 rounded object-cover" src={product.image} alt="" />
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-bold text-on-surface">{product.name}</div>
-                            <div className="text-xs text-outline">SKU: {product.sku}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">{product.category}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-on-surface">${product.price.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">{product.stock} units</td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                          product.status === 'In Stock' 
-                            ? 'bg-secondary-container text-on-secondary-container' 
-                            : 'bg-error-container text-on-error-container'
-                        }`}>
-                          {product.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-outline hover:text-on-surface">
-                          <MoreVertical className="w-5 h-5" />
-                        </button>
-                      </td>
+                  {filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-8 text-center text-outline text-sm">No products found.</td>
                     </tr>
-                  ))}
+                  ) : (
+                    filteredProducts.map((product) => {
+                      const image = product.images?.[0]?.url || defaultImage;
+                      const status = getStatus(product.stock);
+                      return (
+                        <tr 
+                          key={product.id} 
+                          className={`hover:bg-surface-container-lowest transition-colors cursor-pointer ${selectedProduct?.id === product.id ? 'bg-surface-container-lowest' : ''}`}
+                          onClick={() => setSelectedProduct(product)}
+                        >
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="flex items-center">
+                              <div className="flex-shrink-0 h-10 w-10">
+                                <img className="h-10 w-10 rounded object-cover" src={image} alt={product.name} />
+                              </div>
+                              <div className="ml-4">
+                                <div className="text-sm font-bold text-on-surface">{product.name}</div>
+                                <div className="text-xs text-outline">SKU: {product.sku || 'N/A'}</div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">{product.category || 'Uncategorized'}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-on-surface">${Number(product.price).toFixed(2)}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-on-surface-variant">{product.stock} units</td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                              status === 'In Stock' 
+                                ? 'bg-secondary-container text-on-secondary-container' 
+                                : status === 'Low Stock' ? 'bg-[#fef3c7] text-[#92400e]' : 'bg-error-container text-on-error-container'
+                            }`}>
+                              {status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button className="text-outline hover:text-on-surface">
+                              <MoreVertical className="w-5 h-5" />
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
                 </tbody>
               </table>
             </div>
@@ -160,7 +173,7 @@ const ProductsPage: React.FC = () => {
               <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <p className="text-sm text-on-surface-variant">
-                    Showing <span className="font-medium">1-4</span> of <span className="font-medium">48</span> products
+                    Showing <span className="font-medium">{filteredProducts.length > 0 ? 1 : 0}</span> to <span className="font-medium">{filteredProducts.length}</span> of <span className="font-medium">{products.length}</span> products
                   </p>
                 </div>
                 <div>
@@ -172,8 +185,6 @@ const ProductsPage: React.FC = () => {
                       </svg>
                     </button>
                     <button className="relative inline-flex items-center px-4 py-2 border border-outline-variant/50 bg-primary text-sm font-medium text-white">1</button>
-                    <button className="relative inline-flex items-center px-4 py-2 border border-outline-variant/50 bg-white text-sm font-medium text-on-surface-variant hover:bg-surface-container-lowest">2</button>
-                    <button className="relative inline-flex items-center px-4 py-2 border border-outline-variant/50 bg-white text-sm font-medium text-on-surface-variant hover:bg-surface-container-lowest">3</button>
                     <button className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-outline-variant/50 bg-white text-sm font-medium text-outline hover:bg-surface-container-lowest">
                       <span className="sr-only">Next</span>
                       <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
@@ -247,7 +258,7 @@ const ProductsPage: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-6">
             <div className="mb-6 relative group">
               <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden bg-surface-container-lowest border border-outline-variant/30">
-                <img src={selectedProduct.image} alt={selectedProduct.name} className="object-cover w-full h-48" />
+                <img src={selectedProduct.images?.[0]?.url || defaultImage} alt={selectedProduct.name} className="object-cover w-full h-48" />
               </div>
               <button className="absolute bottom-2 right-2 p-2 bg-white rounded-full shadow-md text-on-surface-variant hover:text-primary transition-colors">
                 <Edit2 className="w-4 h-4" />
@@ -261,11 +272,11 @@ const ProductsPage: React.FC = () => {
               </div>
               <div>
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Category</span>
-                <span className="text-on-surface">{selectedProduct.category}</span>
+                <span className="text-on-surface">{selectedProduct.category || 'N/A'}</span>
               </div>
               <div>
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Base Price</span>
-                <span className="text-xl font-bold text-on-surface">${selectedProduct.price.toFixed(2)}</span>
+                <span className="text-xl font-bold text-on-surface">${Number(selectedProduct.price).toFixed(2)}</span>
               </div>
               <div>
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Current Stock</span>
@@ -296,9 +307,9 @@ const ProductsPage: React.FC = () => {
 
           <div className="p-6 border-t border-outline-variant/30 bg-surface-bright flex space-x-3">
             <button className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-primary-container transition-colors">
-              Save Changes
+              Edit Product
             </button>
-            <button className="px-4 py-2.5 border border-error text-error rounded-lg font-medium hover:bg-error-container transition-colors">
+            <button onClick={handleDeleteProduct} className="px-4 py-2.5 border border-error text-error rounded-lg font-medium hover:bg-error-container transition-colors">
               Delete
             </button>
           </div>
@@ -308,7 +319,6 @@ const ProductsPage: React.FC = () => {
   );
 };
 
-// Helper component for chevron since we didn't import it at the top to save space
 const ChevronRight: React.FC<{className?: string}> = ({className}) => (
   <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
