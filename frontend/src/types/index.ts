@@ -61,6 +61,7 @@ export interface CreateProductRequest {
   category?: string;
   sku?: string;
   variants?: Record<string, unknown>;
+  imageUrl?: string;
 }
 
 export interface UpdateProductRequest extends Partial<CreateProductRequest> {

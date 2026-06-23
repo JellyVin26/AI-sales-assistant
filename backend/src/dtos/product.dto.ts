@@ -22,6 +22,7 @@ export interface CreateProductRequest {
   category?: string;
   sku?: string;
   variants?: Record<string, unknown>;
+  imageUrl?: string;
 }
 
 export interface UpdateProductRequest {
@@ -33,6 +34,7 @@ export interface UpdateProductRequest {
   sku?: string;
   variants?: Record<string, unknown>;
   isActive?: boolean;
+  imageUrl?: string;
 }
 
 export interface ProductResponse {

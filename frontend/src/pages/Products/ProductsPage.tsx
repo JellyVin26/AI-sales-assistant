@@ -8,6 +8,12 @@ const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Edit states
+  const [isEditing, setIsEditing] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Product> & { imageUrl?: string }>({});
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -25,7 +31,19 @@ const ProductsPage: React.FC = () => {
 
   const handleExport = () => alert('Exporting products...');
   const handleImport = () => alert('Filters / Import coming soon...');
-  const handleAddProduct = () => alert('Add Product modal coming soon!');
+  const handleAddProduct = () => {
+    setSelectedProduct(null);
+    setIsEditing(false);
+    setIsAdding(true);
+    setEditForm({
+      name: '',
+      category: '',
+      price: 0,
+      stock: 0,
+      description: '',
+      imageUrl: ''
+    });
+  };
   const handleDeleteProduct = async () => {
     if (!selectedProduct) return;
     if (confirm(`Are you sure you want to delete ${selectedProduct.name}?`)) {
@@ -33,9 +51,58 @@ const ProductsPage: React.FC = () => {
         await productService.delete(selectedProduct.id);
         setProducts(products.filter(p => p.id !== selectedProduct.id));
         setSelectedProduct(null);
+        setIsEditing(false);
       } catch (err) {
         alert('Failed to delete product.');
       }
+    }
+  };
+
+  const handleEditClick = () => {
+    setEditForm({
+      name: selectedProduct?.name,
+      category: selectedProduct?.category,
+      price: selectedProduct?.price,
+      stock: selectedProduct?.stock,
+      description: selectedProduct?.description,
+      imageUrl: selectedProduct?.images?.[0]?.url || ''
+    });
+    setIsEditing(true);
+    setIsAdding(false);
+  };
+
+  const handleSaveEdit = async () => {
+    setIsSaving(true);
+    try {
+      if (isAdding) {
+        const created = await productService.create({
+          name: editForm.name || 'New Product',
+          category: editForm.category,
+          price: Number(editForm.price) || 0,
+          stock: Number(editForm.stock) || 0,
+          description: editForm.description,
+          imageUrl: editForm.imageUrl
+        });
+        setProducts([created, ...products]);
+        setSelectedProduct(created);
+        setIsAdding(false);
+      } else if (selectedProduct) {
+        const updated = await productService.update(selectedProduct.id, {
+          name: editForm.name || '',
+          category: editForm.category,
+          price: Number(editForm.price),
+          stock: Number(editForm.stock),
+          description: editForm.description,
+          imageUrl: editForm.imageUrl
+        });
+        setProducts(products.map(p => p.id === updated.id ? updated : p));
+        setSelectedProduct(updated);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      alert('Failed to save product.');
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -243,12 +310,18 @@ const ProductsPage: React.FC = () => {
       </div>
 
       {/* Side Panel */}
-      {selectedProduct && (
+      {(selectedProduct || isAdding) && (
         <div className="fixed inset-y-0 right-0 w-full max-w-sm lg:w-96 bg-surface-bright border-l border-outline-variant/30 shadow-xl transform transition-transform duration-300 ease-in-out z-20 flex flex-col pt-16 md:pt-0">
           <div className="px-6 py-4 border-b border-outline-variant/30 flex items-center justify-between mt-16 md:mt-0">
-            <h2 className="text-xl font-bold text-on-surface">Product Details</h2>
+            <h2 className="text-xl font-bold text-on-surface">
+              {isAdding ? 'Add Product' : isEditing ? 'Edit Product' : 'Product Details'}
+            </h2>
             <button 
-              onClick={() => setSelectedProduct(null)}
+              onClick={() => {
+                setSelectedProduct(null);
+                setIsEditing(false);
+                setIsAdding(false);
+              }}
               className="text-outline hover:text-on-surface p-1 rounded-full hover:bg-surface-container"
             >
               <X className="w-5 h-5" />
@@ -258,60 +331,143 @@ const ProductsPage: React.FC = () => {
           <div className="flex-1 overflow-y-auto p-6">
             <div className="mb-6 relative group">
               <div className="aspect-w-4 aspect-h-3 rounded-lg overflow-hidden bg-surface-container-lowest border border-outline-variant/30">
-                <img src={selectedProduct.images?.[0]?.url || defaultImage} alt={selectedProduct.name} className="object-cover w-full h-48" />
+                <img src={(isEditing || isAdding) ? (editForm.imageUrl || defaultImage) : (selectedProduct?.images?.[0]?.url || defaultImage)} alt={selectedProduct?.name || 'Product'} className="object-cover w-full h-48" />
               </div>
-              <button className="absolute bottom-2 right-2 p-2 bg-white rounded-full shadow-md text-on-surface-variant hover:text-primary transition-colors">
-                <Edit2 className="w-4 h-4" />
-              </button>
             </div>
+
+            {(isEditing || isAdding) && (
+              <div className="mb-6">
+                <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Image URL</span>
+                <input 
+                  type="text" 
+                  value={editForm.imageUrl || ''} 
+                  onChange={e => setEditForm({...editForm, imageUrl: e.target.value})}
+                  placeholder="https://example.com/image.jpg"
+                  className="w-full px-2 py-1 border border-outline-variant rounded text-sm bg-white focus:ring-1 focus:ring-primary focus:outline-none"
+                />
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4 mb-6">
               <div>
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Product Name</span>
-                <span className="font-bold text-on-surface">{selectedProduct.name}</span>
+                {(isEditing || isAdding) ? (
+                  <input 
+                    type="text" 
+                    value={editForm.name || ''} 
+                    onChange={e => setEditForm({...editForm, name: e.target.value})}
+                    className="w-full px-2 py-1 border border-outline-variant rounded text-sm bg-white focus:ring-1 focus:ring-primary focus:outline-none"
+                  />
+                ) : (
+                  <span className="font-bold text-on-surface">{selectedProduct?.name}</span>
+                )}
               </div>
               <div>
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Category</span>
-                <span className="text-on-surface">{selectedProduct.category || 'N/A'}</span>
+                {(isEditing || isAdding) ? (
+                  <input 
+                    type="text" 
+                    value={editForm.category || ''} 
+                    onChange={e => setEditForm({...editForm, category: e.target.value})}
+                    className="w-full px-2 py-1 border border-outline-variant rounded text-sm bg-white focus:ring-1 focus:ring-primary focus:outline-none"
+                  />
+                ) : (
+                  <span className="text-on-surface">{selectedProduct?.category || 'N/A'}</span>
+                )}
               </div>
               <div>
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Base Price</span>
-                <span className="text-xl font-bold text-on-surface">${Number(selectedProduct.price).toFixed(2)}</span>
+                {(isEditing || isAdding) ? (
+                  <input 
+                    type="number" 
+                    value={editForm.price || 0} 
+                    onChange={e => setEditForm({...editForm, price: parseFloat(e.target.value)})}
+                    className="w-full px-2 py-1 border border-outline-variant rounded text-sm bg-white focus:ring-1 focus:ring-primary focus:outline-none"
+                  />
+                ) : (
+                  <span className="text-xl font-bold text-on-surface">${Number(selectedProduct?.price || 0).toFixed(2)}</span>
+                )}
               </div>
               <div>
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-1">Current Stock</span>
-                <span className="text-on-surface">{selectedProduct.stock} Units</span>
+                {(isEditing || isAdding) ? (
+                  <input 
+                    type="number" 
+                    value={editForm.stock || 0} 
+                    onChange={e => setEditForm({...editForm, stock: parseInt(e.target.value)})}
+                    className="w-full px-2 py-1 border border-outline-variant rounded text-sm bg-white focus:ring-1 focus:ring-primary focus:outline-none"
+                  />
+                ) : (
+                  <span className="text-on-surface">{selectedProduct?.stock} Units</span>
+                )}
               </div>
             </div>
 
-            {selectedProduct.description && (
+            {((selectedProduct?.description) || isEditing || isAdding) && (
               <div className="mb-8">
                 <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-2">Description</span>
-                <p className="text-sm text-on-surface-variant leading-relaxed">
-                  {selectedProduct.description}
-                </p>
+                {(isEditing || isAdding) ? (
+                  <textarea 
+                    value={editForm.description || ''} 
+                    onChange={e => setEditForm({...editForm, description: e.target.value})}
+                    rows={3}
+                    className="w-full px-2 py-1 border border-outline-variant rounded text-sm bg-white focus:ring-1 focus:ring-primary focus:outline-none resize-none"
+                  />
+                ) : (
+                  <p className="text-sm text-on-surface-variant leading-relaxed">
+                    {selectedProduct?.description}
+                  </p>
+                )}
               </div>
             )}
 
-            <div>
-              <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-2">Sales Performance (30D)</span>
-              <div className="w-full bg-surface-container rounded-full h-2 mb-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
+            {!(isEditing || isAdding) && (
+              <div>
+                <span className="block text-xs font-semibold text-outline uppercase tracking-wider mb-2">Sales Performance (30D)</span>
+                <div className="w-full bg-surface-container rounded-full h-2 mb-2">
+                  <div className="bg-primary h-2 rounded-full" style={{ width: '75%' }}></div>
+                </div>
+                <div className="flex justify-between text-xs font-medium">
+                  <span className="text-on-surface-variant">$12,450 Revenue</span>
+                  <span className="text-emerald-600">+12.5% vs Last Month</span>
+                </div>
               </div>
-              <div className="flex justify-between text-xs font-medium">
-                <span className="text-on-surface-variant">$12,450 Revenue</span>
-                <span className="text-emerald-600">+12.5% vs Last Month</span>
-              </div>
-            </div>
+            )}
           </div>
 
           <div className="p-6 border-t border-outline-variant/30 bg-surface-bright flex space-x-3">
-            <button className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-primary-container transition-colors">
-              Edit Product
-            </button>
-            <button onClick={handleDeleteProduct} className="px-4 py-2.5 border border-error text-error rounded-lg font-medium hover:bg-error-container transition-colors">
-              Delete
-            </button>
+            {(isEditing || isAdding) ? (
+              <>
+                <button 
+                  onClick={handleSaveEdit}
+                  disabled={isSaving}
+                  className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-50"
+                >
+                  {isSaving ? 'Saving...' : 'Save Product'}
+                </button>
+                <button 
+                  onClick={() => {
+                    setIsEditing(false);
+                    setIsAdding(false);
+                  }} 
+                  className="px-4 py-2.5 border border-outline-variant text-on-surface-variant rounded-lg font-medium hover:bg-surface-container transition-colors"
+                >
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <>
+                <button 
+                  onClick={handleEditClick}
+                  className="flex-1 bg-primary text-white py-2.5 rounded-lg font-medium hover:bg-primary-container transition-colors"
+                >
+                  Edit Product
+                </button>
+                <button onClick={handleDeleteProduct} className="px-4 py-2.5 border border-error text-error rounded-lg font-medium hover:bg-error-container transition-colors">
+                  Delete
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
