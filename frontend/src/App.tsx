@@ -7,6 +7,7 @@ import { DashboardPage } from './pages/Dashboard';
 import { AIChatPage } from './pages/AIChat';
 import { ProductsPage } from './pages/Products';
 import { KnowledgeBasePage } from './pages/KnowledgeBase';
+import { CustomersPage } from './pages/Customers';
 import { AnalyticsPage } from './pages/Analytics';
 import { SettingsPage } from './pages/Settings';
 
@@ -23,7 +24,7 @@ const AppRoutes: React.FC = () => {
         <Route path="/chats" element={<AIChatPage />} />
         <Route path="/products" element={<ProductsPage />} />
         <Route path="/knowledge" element={<KnowledgeBasePage />} />
-        <Route path="/customers" element={<DashboardPage />} /> {/* Placeholder */}
+        <Route path="/customers" element={<CustomersPage />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>
