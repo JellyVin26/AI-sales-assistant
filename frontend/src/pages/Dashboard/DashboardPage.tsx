@@ -1,14 +1,26 @@
 import React, { useState, useEffect } from 'react';
 import { MessageSquare, DollarSign, Clock, Target, Calendar, Download, Sparkles, MoreHorizontal, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { dashboardService } from '../../services';
 import type { DashboardData } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showAiBanner, setShowAiBanner] = useState(true);
+
+  const handleExport = () => {
+    alert('Exporting dashboard data as CSV... (Simulation)');
+  };
+
+  const handleApplySuggestion = () => {
+    alert('Suggestion Applied! Bundle Discount has been activated for Product A.');
+    setShowAiBanner(false);
+  };
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -54,11 +66,17 @@ const DashboardPage: React.FC = () => {
           <p className="text-on-surface-variant text-base">Here's what's happening with your sales pipeline today.</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
-          <button className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors">
+          <button 
+            onClick={() => alert('Date range filtering will be available soon!')}
+            className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors"
+          >
             <Calendar className="w-4 h-4 mr-2 text-outline" />
             Today
           </button>
-          <button className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors">
+          <button 
+            onClick={handleExport}
+            className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors"
+          >
             <Download className="w-4 h-4 mr-2 text-outline" />
             Export
           </button>
@@ -151,30 +169,38 @@ const DashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="col-span-1 lg:col-span-2 space-y-8">
           {/* AI Recommendation Banner */}
-          <div className="bg-white rounded-2xl border-2 border-primary/20 p-8 relative overflow-hidden">
-            <div className="absolute top-0 right-0 -mt-4 -mr-4 text-primary/10">
-              <Sparkles className="w-48 h-48" />
-            </div>
-            <div className="relative z-10">
-              <div className="flex items-center space-x-3 mb-4">
-                <div className="bg-primary/10 p-2 rounded-lg">
-                  <Sparkles className="w-6 h-6 text-primary" />
+          {showAiBanner && (
+            <div className="bg-white rounded-2xl border-2 border-primary/20 p-8 relative overflow-hidden transition-all duration-300">
+              <div className="absolute top-0 right-0 -mt-4 -mr-4 text-primary/10">
+                <Sparkles className="w-48 h-48" />
+              </div>
+              <div className="relative z-10">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="bg-primary/10 p-2 rounded-lg">
+                    <Sparkles className="w-6 h-6 text-primary" />
+                  </div>
+                  <h2 className="text-xl font-bold text-on-surface">AI Recommendation</h2>
                 </div>
-                <h2 className="text-xl font-bold text-on-surface">AI Recommendation</h2>
-              </div>
-              <p className="text-lg text-on-surface-variant leading-relaxed mb-6 max-w-2xl">
-                "Customers frequently ask about <strong className="text-primary">Product A</strong> but often leave without purchasing. Consider adding a <strong className="text-primary">Limited-time Bundle Discount</strong> offer to the AI chat flow for this specific item."
-              </p>
-              <div className="flex space-x-3">
-                <button className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-container transition-colors">
-                  Apply Suggestion
-                </button>
-                <button className="px-6 py-2.5 bg-surface-container text-on-surface-variant font-medium rounded-lg hover:bg-surface-container-high transition-colors">
-                  Dismiss
-                </button>
+                <p className="text-lg text-on-surface-variant leading-relaxed mb-6 max-w-2xl">
+                  "Customers frequently ask about <strong className="text-primary">Product A</strong> but often leave without purchasing. Consider adding a <strong className="text-primary">Limited-time Bundle Discount</strong> offer to the AI chat flow for this specific item."
+                </p>
+                <div className="flex space-x-3">
+                  <button 
+                    onClick={handleApplySuggestion}
+                    className="px-6 py-2.5 bg-primary text-white font-medium rounded-lg hover:bg-primary-container transition-colors"
+                  >
+                    Apply Suggestion
+                  </button>
+                  <button 
+                    onClick={() => setShowAiBanner(false)}
+                    className="px-6 py-2.5 bg-surface-container text-on-surface-variant font-medium rounded-lg hover:bg-surface-container-high transition-colors"
+                  >
+                    Dismiss
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Conversation Trend */}
@@ -249,7 +275,12 @@ const DashboardPage: React.FC = () => {
         <div className="bg-white rounded-xl border border-outline-variant/50 flex flex-col h-full">
           <div className="p-6 border-b border-outline-variant/30 flex items-center justify-between">
             <h3 className="text-lg font-bold text-on-surface">Recent Activity</h3>
-            <button className="text-sm font-semibold text-primary hover:text-primary-container">View All</button>
+            <button 
+              onClick={() => navigate('/chats')}
+              className="text-sm font-semibold text-primary hover:text-primary-container"
+            >
+              View All
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto">
             <div className="divide-y divide-outline-variant/30">
