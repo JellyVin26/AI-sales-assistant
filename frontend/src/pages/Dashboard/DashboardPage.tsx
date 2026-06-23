@@ -1,13 +1,56 @@
-import React from 'react';
-import { MessageSquare, DollarSign, Clock, Target, Calendar, Download, Sparkles, MoreHorizontal } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { MessageSquare, DollarSign, Clock, Target, Calendar, Download, Sparkles, MoreHorizontal, Loader2 } from 'lucide-react';
+import { dashboardService } from '../../services';
+import type { DashboardData } from '../../types';
+import { useAuth } from '../../contexts/AuthContext';
 
 const DashboardPage: React.FC = () => {
+  const { user } = useAuth();
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const dashboardData = await dashboardService.getData();
+        setData(dashboardData);
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Failed to load dashboard data');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDashboard();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center">
+        <div className="text-center">
+          <p className="text-error mb-4">{error}</p>
+          <button onClick={() => window.location.reload()} className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-container">
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-4rem)] overflow-y-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface tracking-tight mb-1">Good Morning, Alex</h1>
+          <h1 className="text-3xl font-bold text-on-surface tracking-tight mb-1">Good Morning, {user?.firstName || 'User'}</h1>
           <p className="text-on-surface-variant text-base">Here's what's happening with your sales pipeline today.</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3">
@@ -33,7 +76,7 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-baseline mb-1">
-            <span className="text-4xl font-bold text-on-surface">24</span>
+            <span className="text-4xl font-bold text-on-surface">{data?.stats.totalChats || 0}</span>
             <span className="ml-3 text-sm font-medium text-emerald-600 flex items-center">
               <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -47,13 +90,13 @@ const DashboardPage: React.FC = () => {
         {/* Card 2 */}
         <div className="bg-white rounded-xl border border-outline-variant/50 p-6 flex flex-col">
           <div className="flex justify-between items-start mb-4">
-            <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Sales Assisted</span>
+            <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">Active Customers</span>
             <div className="p-2 bg-secondary-fixed text-secondary rounded-lg">
               <DollarSign className="w-5 h-5" />
             </div>
           </div>
           <div className="flex items-baseline mb-1">
-            <span className="text-4xl font-bold text-on-surface">$1,240</span>
+            <span className="text-4xl font-bold text-on-surface">{data?.stats.activeCustomers || 0}</span>
             <span className="ml-3 text-sm font-medium text-emerald-600 flex items-center">
               <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -61,7 +104,7 @@ const DashboardPage: React.FC = () => {
               +8%
             </span>
           </div>
-          <span className="text-sm text-outline font-medium mt-auto">Attributed to AI chats</span>
+          <span className="text-sm text-outline font-medium mt-auto">Engaged with AI</span>
         </div>
 
         {/* Card 3 */}
@@ -210,75 +253,34 @@ const DashboardPage: React.FC = () => {
           </div>
           <div className="flex-1 overflow-y-auto">
             <div className="divide-y divide-outline-variant/30">
-              <div className="p-6 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
-                <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-primary-fixed text-primary font-bold flex items-center justify-center flex-shrink-0">JD</div>
-                  <div className="ml-4 flex-1">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-bold text-on-surface">John Doe</p>
-                      <span className="text-xs text-outline font-medium">2m ago</span>
-                    </div>
-                    <p className="text-sm text-on-surface-variant italic mt-1">"How long is shipping to NY?"</p>
-                    <div className="mt-2 flex items-center text-xs font-semibold text-secondary">
-                      <div className="w-1.5 h-1.5 rounded-full bg-secondary mr-1.5"></div>
-                      AI Responded
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
-                <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-secondary-fixed text-secondary font-bold flex items-center justify-center flex-shrink-0">SM</div>
-                  <div className="ml-4 flex-1">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-bold text-on-surface">Sarah Miller</p>
-                      <span className="text-xs text-outline font-medium">15m ago</span>
-                    </div>
-                    <p className="text-sm text-on-surface-variant italic mt-1">"Purchased Product A -..."</p>
-                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-secondary-container text-on-secondary-container">
-                      SALE: $499
+              {data?.recentConversations.length === 0 ? (
+                <div className="p-6 text-center text-outline text-sm">No recent activity</div>
+              ) : (
+                data?.recentConversations.map((conv) => (
+                  <div key={conv.id} className="p-6 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
+                    <div className="flex items-start">
+                      <div className="w-10 h-10 rounded-full bg-primary-fixed text-primary font-bold flex items-center justify-center flex-shrink-0">
+                        {conv.customerName ? conv.customerName.charAt(0).toUpperCase() : '?'}
+                      </div>
+                      <div className="ml-4 flex-1">
+                        <div className="flex justify-between items-start">
+                          <p className="text-sm font-bold text-on-surface">{conv.customerName || 'Unknown Customer'}</p>
+                          <span className="text-xs text-outline font-medium">{new Date(conv.lastMessageAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                        </div>
+                        <p className="text-sm text-on-surface-variant italic mt-1">{conv.messageCount} messages in this thread</p>
+                        <div className="mt-2 flex items-center text-xs font-semibold text-secondary">
+                          <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${conv.status === 'ACTIVE' ? 'bg-secondary' : 'bg-outline'}`}></div>
+                          {conv.status}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-
-              <div className="p-6 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
-                <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-tertiary-fixed text-tertiary font-bold flex items-center justify-center flex-shrink-0">RK</div>
-                  <div className="ml-4 flex-1">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-bold text-on-surface">Robert King</p>
-                      <span className="text-xs text-outline font-medium">42m ago</span>
-                    </div>
-                    <p className="text-sm text-on-surface-variant italic mt-1">"Need help with API integratio..."</p>
-                    <div className="mt-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-primary-fixed text-on-primary-fixed-variant">
-                      Human Requested
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 hover:bg-surface-container-lowest transition-colors cursor-pointer group">
-                <div className="flex items-start">
-                  <div className="w-10 h-10 rounded-full bg-outline-variant/30 text-on-surface-variant font-bold flex items-center justify-center flex-shrink-0">EL</div>
-                  <div className="ml-4 flex-1">
-                    <div className="flex justify-between items-start">
-                      <p className="text-sm font-bold text-on-surface">Emily Lee</p>
-                      <span className="text-xs text-outline font-medium">1h ago</span>
-                    </div>
-                    <p className="text-sm text-on-surface-variant italic mt-1">"Comparing features with..."</p>
-                    <div className="mt-2 flex items-center text-xs font-semibold text-[#D97706]">
-                      <div className="w-1.5 h-1.5 rounded-full bg-[#D97706] mr-1.5"></div>
-                      AI Negotiating
-                    </div>
-                  </div>
-                </div>
-              </div>
+                ))
+              )}
             </div>
           </div>
           <div className="p-4 border-t border-outline-variant/30 bg-surface-container-lowest text-center rounded-b-xl">
-            <span className="text-xs font-semibold text-outline tracking-wide">8 active conversations currently</span>
+            <span className="text-xs font-semibold text-outline tracking-wide">{data?.recentConversations.length} recent conversations shown</span>
           </div>
         </div>
       </div>
