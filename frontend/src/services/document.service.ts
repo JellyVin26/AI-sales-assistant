@@ -1,5 +1,5 @@
 import api from './api';
-import { ApiResponse, Document } from '../types';
+import type { ApiResponse, Document } from '../types';
 
 export const documentService = {
   getAll: async (): Promise<Document[]> => {

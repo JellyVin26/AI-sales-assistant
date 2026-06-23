@@ -1,5 +1,5 @@
 import api from './api';
-import { ApiResponse, Product, CreateProductRequest, UpdateProductRequest } from '../types';
+import type { ApiResponse, Product, CreateProductRequest, UpdateProductRequest } from '../types';
 
 export const productService = {
   getAll: async (page = 1, limit = 10) => {

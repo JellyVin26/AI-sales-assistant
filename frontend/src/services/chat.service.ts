@@ -1,5 +1,5 @@
 import api from './api';
-import { ApiResponse, ChatResponse, Conversation, SendMessageRequest } from '../types';
+import type { ApiResponse, ChatResponse, Conversation, SendMessageRequest } from '../types';
 
 export const chatService = {
   sendMessage: async (businessId: string, data: SendMessageRequest): Promise<ChatResponse> => {

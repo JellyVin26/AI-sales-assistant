@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button, Input } from '../../components/common';
+import { Rocket, Eye, EyeOff } from 'lucide-react';
 
 const RegisterPage: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +14,8 @@ const RegisterPage: React.FC = () => {
   });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -51,116 +53,185 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 bg-gray-50 dark:bg-gray-900">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-          Create your account
-        </h2>
-        <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-          Already have an account?{' '}
-          <Link to="/login" className="font-medium text-indigo-600 hover:text-indigo-500">
-            Sign in
-          </Link>
-        </p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-surface relative overflow-hidden py-12 px-4 sm:px-6 lg:px-8">
+      
+      {/* Header / Logo */}
+      <div className="text-center mb-8 z-10">
+        <div className="mx-auto w-14 h-14 bg-primary rounded-2xl flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
+          <Rocket className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-3xl font-bold text-on-surface tracking-tight mb-2">SalesPilot</h1>
+        <p className="text-on-surface-variant text-sm">Join the AI-driven sales revolution</p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl">
-        <div className="bg-white dark:bg-gray-800 py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+      {/* Main Container */}
+      <div className="w-full max-w-xl relative z-10">
+        
+        {/* Register Form Card */}
+        <div className="bg-white border border-outline-variant/30 rounded-2xl shadow-xl p-8 w-full relative z-20">
+          <h2 className="text-2xl font-bold text-on-surface mb-6">Create your account</h2>
+          
+          <form className="space-y-5" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 px-4 py-3 rounded-md text-sm">
+              <div className="bg-error-container text-on-error-container px-4 py-3 rounded-lg text-sm font-medium border border-error/20">
                 {error}
               </div>
             )}
 
-            <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-4">
-              <Input
-                id="firstName"
-                label="First name"
-                type="text"
-                required
-                value={formData.firstName}
-                onChange={handleChange}
-              />
+            <div className="grid grid-cols-1 gap-y-5 sm:grid-cols-2 sm:gap-x-4">
+              <div>
+                <label htmlFor="firstName" className="block text-sm font-semibold text-on-surface mb-1.5">
+                  First name
+                </label>
+                <input
+                  id="firstName"
+                  type="text"
+                  required
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface"
+                />
+              </div>
 
-              <Input
-                id="lastName"
-                label="Last name"
+              <div>
+                <label htmlFor="lastName" className="block text-sm font-semibold text-on-surface mb-1.5">
+                  Last name
+                </label>
+                <input
+                  id="lastName"
+                  type="text"
+                  required
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label htmlFor="businessName" className="block text-sm font-semibold text-on-surface mb-1.5">
+                Business name
+              </label>
+              <input
+                id="businessName"
                 type="text"
                 required
-                value={formData.lastName}
+                value={formData.businessName}
                 onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface"
               />
             </div>
 
-            <Input
-              id="businessName"
-              label="Business name"
-              type="text"
-              required
-              value={formData.businessName}
-              onChange={handleChange}
-            />
-
-            <Input
-              id="email"
-              label="Email address"
-              type="email"
-              autoComplete="email"
-              required
-              value={formData.email}
-              onChange={handleChange}
-            />
-
-            <Input
-              id="password"
-              label="Password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={formData.password}
-              onChange={handleChange}
-              helperText="Must be at least 8 characters"
-            />
-
-            <Input
-              id="confirmPassword"
-              label="Confirm password"
-              type="password"
-              autoComplete="new-password"
-              required
-              value={formData.confirmPassword}
-              onChange={handleChange}
-            />
-
-            <div className="flex items-center">
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-on-surface mb-1.5">
+                Email address
+              </label>
               <input
-                id="terms"
-                name="terms"
-                type="checkbox"
+                id="email"
+                type="email"
                 required
-                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded dark:border-gray-600 dark:bg-gray-700"
+                placeholder="name@company.com"
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-white placeholder-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface"
               />
-              <label htmlFor="terms" className="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+            </div>
+
+            <div className="grid grid-cols-1 gap-y-5 sm:grid-cols-2 sm:gap-x-4">
+              <div>
+                <label htmlFor="password" className="block text-sm font-semibold text-on-surface mb-1.5">
+                  Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="password"
+                    type={showPassword ? "text" : "password"}
+                    required
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-white placeholder-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-outline hover:text-on-surface transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+                <p className="mt-1 text-xs text-outline font-medium">At least 8 characters</p>
+              </div>
+
+              <div>
+                <label htmlFor="confirmPassword" className="block text-sm font-semibold text-on-surface mb-1.5">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <input
+                    id="confirmPassword"
+                    type={showConfirmPassword ? "text" : "password"}
+                    required
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 bg-white placeholder-outline focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-on-surface pr-10"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-outline hover:text-on-surface transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-start mt-4">
+              <div className="flex items-center h-5">
+                <input
+                  id="terms"
+                  type="checkbox"
+                  required
+                  className="w-4 h-4 text-primary bg-white border-outline-variant/50 rounded focus:ring-primary/50 focus:ring-2 transition-colors"
+                />
+              </div>
+              <label htmlFor="terms" className="ml-2 text-sm text-on-surface-variant">
                 I agree to the{' '}
-                <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                <a href="#" className="font-semibold text-primary hover:text-primary-container transition-colors">
                   Terms of Service
                 </a>{' '}
                 and{' '}
-                <a href="#" className="text-indigo-600 hover:text-indigo-500">
+                <a href="#" className="font-semibold text-primary hover:text-primary-container transition-colors">
                   Privacy Policy
                 </a>
               </label>
             </div>
 
-            <Button
+            <button
               type="submit"
-              className="w-full"
-              isLoading={isLoading}
+              disabled={isLoading}
+              className="w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-primary hover:bg-primary-container focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-70 mt-4"
             >
-              Register
-            </Button>
+              {isLoading ? 'Creating account...' : 'Register'}
+            </button>
           </form>
+        </div>
+      </div>
+
+      {/* Footer Links */}
+      <div className="mt-8 text-center z-10 flex flex-col items-center">
+        <p className="text-sm text-on-surface-variant font-medium mb-8">
+          Already have an account?{' '}
+          <Link to="/login" className="font-bold text-primary hover:text-primary-container transition-colors">
+            Sign in
+          </Link>
+        </p>
+        
+        <div className="flex items-center text-xs font-bold text-outline tracking-wider uppercase bg-surface-container px-4 py-2 rounded-full">
+          <div className="w-2 h-2 bg-secondary rounded-full mr-2"></div>
+          System Status: Operational
         </div>
       </div>
     </div>

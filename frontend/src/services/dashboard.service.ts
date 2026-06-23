@@ -1,5 +1,5 @@
 import api from './api';
-import { ApiResponse, DashboardData } from '../types';
+import type { ApiResponse, DashboardData } from '../types';
 
 export const dashboardService = {
   getData: async (): Promise<DashboardData> => {
