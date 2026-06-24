@@ -15,6 +15,13 @@ const DashboardPage: React.FC = () => {
   const [timeframe, setTimeframe] = useState('Today');
   const [showTimeframeDropdown, setShowTimeframeDropdown] = useState(false);
 
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning';
+    if (hour < 18) return 'Good Afternoon';
+    return 'Good Evening';
+  };
+
   const getMultiplier = () => {
     switch (timeframe) {
       case 'Last 7 Days': return 5.5;
@@ -96,7 +103,7 @@ const DashboardPage: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-on-surface tracking-tight mb-1">Good Morning, {user?.firstName || 'User'}</h1>
+          <h1 className="text-3xl font-bold text-on-surface tracking-tight mb-1">{getGreeting()}, {user?.firstName || 'User'}</h1>
           <p className="text-on-surface-variant text-base">Here's what's happening with your sales pipeline today.</p>
         </div>
         <div className="mt-4 sm:mt-0 flex space-x-3 relative">
