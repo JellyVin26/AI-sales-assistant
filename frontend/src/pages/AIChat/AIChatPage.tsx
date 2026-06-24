@@ -3,6 +3,7 @@ import { Search, Paperclip, Send, User, ChevronRight, Phone, FileText, Globe, Lo
 import { chatService } from '../../services';
 import type { Conversation, Message } from '../../types';
 import { useAuth } from '../../contexts/AuthContext';
+import { useSearchParams } from 'react-router-dom';
 
 const AIChatPage: React.FC = () => {
   const { user } = useAuth();
@@ -14,12 +15,24 @@ const AIChatPage: React.FC = () => {
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [replyText, setReplyText] = useState('');
 
+  const [searchParams] = useSearchParams();
+
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         const data = await chatService.getConversations(1, 50);
         setConversations(data.conversations);
-        if (data.conversations.length > 0) {
+        
+        const targetId = searchParams.get('id');
+        if (targetId) {
+          const targetConv = data.conversations.find(c => c.id === targetId);
+          if (targetConv) {
+            handleSelectConversation(targetConv);
+          } else {
+            // Might be on another page, but just fallback to first for now
+            if (data.conversations.length > 0) handleSelectConversation(data.conversations[0]);
+          }
+        } else if (data.conversations.length > 0) {
           handleSelectConversation(data.conversations[0]);
         }
       } catch (err) {

@@ -219,8 +219,7 @@ const CustomersPage: React.FC = () => {
                       </button>
                       <button 
                         onClick={() => {
-                          // In a real app, this would use react-router to navigate to the chat page with the conversation ID
-                          window.location.href = '/chat';
+                          window.location.href = `/chats?id=${conv.id}`;
                         }}
                         className="py-3 text-sm font-bold text-primary hover:bg-surface-container transition-colors"
                       >
