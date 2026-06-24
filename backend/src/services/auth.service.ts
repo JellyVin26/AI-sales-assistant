@@ -85,7 +85,12 @@ export class AuthService {
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
-      business: business ? { id: business.id, name: business.name } : null,
+      business: business ? { 
+        id: business.id, 
+        name: business.name,
+        website: business.website,
+        description: business.description
+      } : null,
     };
   }
 

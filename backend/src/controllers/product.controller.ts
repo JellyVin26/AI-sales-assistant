@@ -17,7 +17,7 @@ export const getProducts = async (req: AuthRequest, res: Response, next: NextFun
 
 export const getProductById = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const result = await productService.getProductById(req.userId!, req.params.id);
+    const result = await productService.getProductById(req.userId!, req.params.id as string);
     res.json({ success: true, data: result });
   } catch (error) {
     next(error);
@@ -35,7 +35,7 @@ export const createProduct = async (req: AuthRequest, res: Response, next: NextF
 
 export const updateProduct = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const result = await productService.updateProduct(req.userId!, req.params.id, req.body);
+    const result = await productService.updateProduct(req.userId!, req.params.id as string, req.body);
     res.json({ success: true, data: result });
   } catch (error) {
     next(error);
@@ -44,7 +44,7 @@ export const updateProduct = async (req: AuthRequest, res: Response, next: NextF
 
 export const deleteProduct = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    await productService.deleteProduct(req.userId!, req.params.id);
+    await productService.deleteProduct(req.userId!, req.params.id as string);
     res.json({ success: true, message: 'Product deleted successfully' });
   } catch (error) {
     next(error);

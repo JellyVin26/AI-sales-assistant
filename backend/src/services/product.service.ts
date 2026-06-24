@@ -1,3 +1,4 @@
+import { Product, Prisma } from '@prisma/client';
 import { ProductRepository, BusinessRepository } from '../repositories';
 import { CreateProductRequest, UpdateProductRequest } from '../dtos';
 import { NotFoundError, ForbiddenError } from '../exceptions';
@@ -29,7 +30,7 @@ export class ProductService {
   async createProduct(userId: string, data: CreateProductRequest) {
     const business = await this.getBusinessByUserId(userId);
 
-    const { imageUrl, ...restData } = data;
+    const { imageUrl, variants, ...restData } = data;
 
     return this.productRepository.create({
       ...restData,
@@ -38,6 +39,7 @@ export class ProductService {
       images: imageUrl ? {
         create: [{ url: imageUrl, isPrimary: true }]
       } : undefined,
+      variants: variants ? (variants as Prisma.InputJsonValue) : undefined,
     });
   }
 
@@ -48,7 +50,7 @@ export class ProductService {
     if (!product) throw new NotFoundError('Product');
     if (product.businessId !== business.id) throw new ForbiddenError();
 
-    const { imageUrl, ...restData } = data;
+    const { imageUrl, variants, ...restData } = data;
     
     // We update the product details.
     // If imageUrl is provided, we can either update the first image or add a new one.
@@ -59,11 +61,15 @@ export class ProductService {
       });
       return this.productRepository.update(productId, {
         ...restData,
+        variants: variants ? (variants as Prisma.InputJsonValue) : undefined,
         images: { create: [{ url: imageUrl, isPrimary: true }] }
       });
     }
 
-    return this.productRepository.update(productId, restData);
+    return this.productRepository.update(productId, {
+        ...restData,
+        variants: variants ? (variants as Prisma.InputJsonValue) : undefined
+    });
   }
 
   async deleteProduct(userId: string, productId: string) {

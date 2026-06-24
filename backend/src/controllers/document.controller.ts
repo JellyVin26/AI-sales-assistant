@@ -28,7 +28,7 @@ export const getDocuments = async (req: AuthRequest, res: Response, next: NextFu
 
 export const deleteDocument = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    await documentService.deleteDocument(req.userId!, req.params.id);
+    await documentService.deleteDocument(req.userId!, req.params.id as string);
     res.json({ success: true, message: 'Document deleted successfully' });
   } catch (error) {
     next(error);

@@ -10,6 +10,8 @@ export interface User {
 export interface Business {
   id: string;
   name: string;
+  website?: string;
+  description?: string;
 }
 
 export interface AuthResponse {

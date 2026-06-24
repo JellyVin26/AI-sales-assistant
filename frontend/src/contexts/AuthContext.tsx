@@ -11,6 +11,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (data: { email: string; password: string; firstName: string; lastName: string; businessName: string }) => Promise<void>;
   logout: () => void;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -20,21 +21,29 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [token, setToken] = useState<string | null>(localStorage.getItem('token'));
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const loadUser = async () => {
-      if (token) {
-        try {
-          const profile = await authService.getProfile();
-          setUser(profile);
-        } catch {
-          localStorage.removeItem('token');
-          setToken(null);
-        }
+  const loadUser = async () => {
+    if (token) {
+      try {
+        const profile = await authService.getProfile();
+        setUser(profile);
+      } catch {
+        localStorage.removeItem('token');
+        setToken(null);
       }
-      setIsLoading(false);
-    };
+    }
+    setIsLoading(false);
+  };
+
+  useEffect(() => {
     loadUser();
   }, [token]);
+
+  const refreshUser = async () => {
+    if (token) {
+      const profile = await authService.getProfile();
+      setUser(profile);
+    }
+  };
 
   const login = async (email: string, password: string) => {
     const response = await authService.login({ email, password });
@@ -57,7 +66,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, isAuthenticated: !!user, login, register, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, isAuthenticated: !!user, login, register, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

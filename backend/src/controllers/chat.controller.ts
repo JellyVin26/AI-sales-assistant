@@ -8,7 +8,7 @@ const chatService = new ChatService();
 export const sendMessage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { businessId } = req.params;
-    const result = await chatService.sendMessage(businessId, req.body);
+    const result = await chatService.sendMessage(businessId as string, req.body);
     res.json({ success: true, data: result });
   } catch (error) {
     next(error);
@@ -29,7 +29,7 @@ export const getConversations = async (req: AuthRequest, res: Response, next: Ne
 
 export const getConversation = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const result = await chatService.getConversation(req.params.id);
+    const result = await chatService.getConversation(req.params.id as string);
     res.json({ success: true, data: result });
   } catch (error) {
     next(error);

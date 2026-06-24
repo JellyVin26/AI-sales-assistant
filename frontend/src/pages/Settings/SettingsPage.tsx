@@ -1,8 +1,45 @@
-import React, { useState } from 'react';
-import { Building, Zap, Bell, Users, CreditCard, Plug, UploadCloud, MoreVertical, Sparkles, UserPlus, ArrowRight } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Building, Zap, Bell, Users, CreditCard, Plug, UploadCloud, MoreVertical, Sparkles, UserPlus, ArrowRight, Loader2, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { businessService } from '../../services';
 
 const SettingsPage: React.FC = () => {
+  const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState('Business Profile');
+  
+  const [businessName, setBusinessName] = useState(user?.business?.name || '');
+  const [website, setWebsite] = useState(user?.business?.website || '');
+  const [description, setDescription] = useState(user?.business?.description || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+
+  useEffect(() => {
+    if (user?.business) {
+      setBusinessName(user.business.name || '');
+      setWebsite(user.business.website || '');
+      setDescription(user.business.description || '');
+    }
+  }, [user]);
+
+  const handleSaveBusiness = async () => {
+    setIsSaving(true);
+    setSaveSuccess(false);
+    try {
+      await businessService.updateBusiness({
+        name: businessName,
+        website,
+        description
+      });
+      await refreshUser();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Failed to update business', err);
+      alert('Failed to update business profile.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const tabs = [
     { name: 'Business Profile', icon: Building },
@@ -67,17 +104,34 @@ const SettingsPage: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-semibold text-on-surface-variant mb-2">Business Name</label>
-                  <input type="text" defaultValue="Acme Solutions" className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm" />
+                  <input 
+                    type="text" 
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm" 
+                  />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-on-surface-variant mb-2">Website</label>
-                  <input type="text" defaultValue="https://acmesolutions.com" className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm" />
+                  <input 
+                    type="text" 
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    placeholder="https://acmesolutions.com" 
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm" 
+                  />
                 </div>
               </div>
               
               <div>
                 <label className="block text-sm font-semibold text-on-surface-variant mb-2">Business Description</label>
-                <textarea rows={3} defaultValue="Empowering small businesses with AI-driven lead generation and automated customer support." className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm resize-none"></textarea>
+                <textarea 
+                  rows={3} 
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Empowering small businesses with AI-driven lead generation and automated customer support." 
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant/50 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors text-sm resize-none"
+                ></textarea>
               </div>
 
               <div className="flex items-center space-x-4">
@@ -87,17 +141,39 @@ const SettingsPage: React.FC = () => {
                   </div>
                 </div>
                 <div>
-                  <button className="text-sm font-bold text-primary hover:text-primary-container transition-colors">Change Logo</button>
+                  <button 
+                    onClick={() => alert('Image upload coming soon!')}
+                    className="text-sm font-bold text-primary hover:text-primary-container transition-colors"
+                  >
+                    Change Logo
+                  </button>
                   <p className="text-xs text-outline mt-1">SVG, PNG, or JPG (max 2MB)</p>
                 </div>
               </div>
             </div>
 
-            <div className="px-6 py-4 bg-surface-container-lowest border-t border-outline-variant/30 flex justify-end space-x-3">
-              <button className="px-5 py-2.5 rounded-xl text-sm font-bold text-on-surface-variant border border-outline-variant/50 hover:bg-surface-container transition-colors">
+            <div className="px-6 py-4 bg-surface-container-lowest border-t border-outline-variant/30 flex justify-end space-x-3 items-center">
+              {saveSuccess && (
+                <span className="text-sm font-bold text-secondary flex items-center mr-2">
+                  <CheckCircle2 className="w-4 h-4 mr-1" /> Saved successfully
+                </span>
+              )}
+              <button 
+                onClick={() => {
+                  setBusinessName(user?.business?.name || '');
+                  setWebsite(user?.business?.website || '');
+                  setDescription(user?.business?.description || '');
+                }}
+                className="px-5 py-2.5 rounded-xl text-sm font-bold text-on-surface-variant border border-outline-variant/50 hover:bg-surface-container transition-colors"
+              >
                 Discard
               </button>
-              <button className="px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-container transition-colors shadow-sm">
+              <button 
+                onClick={handleSaveBusiness}
+                disabled={isSaving}
+                className="flex items-center px-5 py-2.5 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-container transition-colors shadow-sm disabled:opacity-70"
+              >
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
                 Save Changes
               </button>
             </div>
@@ -120,7 +196,10 @@ const SettingsPage: React.FC = () => {
                     <span className="text-3xl font-bold text-primary">$49</span>
                     <span className="text-sm text-outline font-medium ml-1">/mo</span>
                   </div>
-                  <button className="text-sm font-bold text-primary hover:text-primary-container transition-colors flex items-center justify-end w-full">
+                  <button 
+                    onClick={() => alert('Billing integration coming soon!')}
+                    className="text-sm font-bold text-primary hover:text-primary-container transition-colors flex items-center justify-end w-full"
+                  >
                     Manage Subscription <ArrowRight className="w-4 h-4 ml-1" />
                   </button>
                 </div>
@@ -165,7 +244,10 @@ const SettingsPage: React.FC = () => {
                 <h2 className="text-xl font-bold text-on-surface">Team Members</h2>
                 <p className="text-sm text-on-surface-variant">Add or manage your team permissions</p>
               </div>
-              <button className="flex items-center px-4 py-2 bg-secondary-container text-on-secondary-container rounded-xl text-sm font-bold hover:bg-secondary-container/80 transition-colors">
+              <button 
+                onClick={() => alert('Team invites coming soon!')}
+                className="flex items-center px-4 py-2 bg-secondary-container text-on-secondary-container rounded-xl text-sm font-bold hover:bg-secondary-container/80 transition-colors"
+              >
                 <UserPlus className="w-4 h-4 mr-2" />
                 Invite User
               </button>
@@ -216,7 +298,10 @@ const SettingsPage: React.FC = () => {
                         )}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button className="text-outline hover:text-on-surface transition-colors p-1 rounded-lg hover:bg-surface-container">
+                        <button 
+                          onClick={() => alert('User management coming soon!')}
+                          className="text-outline hover:text-on-surface transition-colors p-1 rounded-lg hover:bg-surface-container"
+                        >
                           <MoreVertical className="w-5 h-5" />
                         </button>
                       </td>
