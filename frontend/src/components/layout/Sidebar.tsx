@@ -63,7 +63,7 @@ const Sidebar: React.FC = () => {
   };
 
   return (
-    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-surface-bright border-r border-outline-variant/30">
+    <div className="hidden md:flex md:w-64 md:flex-col md:fixed md:inset-y-0 bg-surface-bright border-r border-outline-variant/30 z-50">
       <div className="flex-1 flex flex-col min-h-0 pt-6 pb-4">
         {/* Logo */}
         <div className="flex items-center px-6 flex-shrink-0">
