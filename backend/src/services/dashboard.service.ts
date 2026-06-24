@@ -41,7 +41,7 @@ export class DashboardService {
         totalDocuments: documents.length,
       },
       topQuestions: [], // Will be implemented with analytics
-      popularProducts: products.items.slice(0, 4).map((p, index) => {
+      popularProducts: products.products.slice(0, 4).map((p: any, index: number) => {
         const mockCounts = [42, 28, 15, 15]; // Percentages
         return {
           id: p.id,
