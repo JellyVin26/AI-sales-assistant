@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
-import { Calendar, Download, TrendingUp, Users, DollarSign, Target } from 'lucide-react';
+import { Calendar, Download, TrendingUp, Users, DollarSign, Target, Loader2 } from 'lucide-react';
+import { dashboardService } from '../../services';
+import type { DashboardData } from '../../types';
 
 const revenueData = [
   { name: 'Jan', revenue: 4000, target: 3000 },
@@ -23,6 +25,42 @@ const customerData = [
 ];
 
 const AnalyticsPage: React.FC = () => {
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const dashboardData = await dashboardService.getDashboard();
+        setData(dashboardData);
+      } catch (err) {
+        console.error('Failed to fetch analytics data', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex h-[calc(100vh-4rem)] items-center justify-center bg-surface">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  // Calculate derived pseudo-metrics based on real conversation data
+  const totalChats = data?.stats.totalChats || 0;
+  const activeCustomers = data?.stats.activeCustomers || 0;
+  
+  // Fake revenue based on chats, assuming 10% conversion at $50 avg order
+  const conversionRate = totalChats > 0 ? (activeCustomers / totalChats) * 100 : 0;
+  const estimatedRevenue = activeCustomers * 50; 
+  
+  // AI saves roughly 5 minutes (0.083 hours) per chat
+  const timeSavedHrs = Math.round(totalChats * 0.083);
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 h-[calc(100vh-4rem)] overflow-y-auto">
       
@@ -58,8 +96,8 @@ const AnalyticsPage: React.FC = () => {
               <TrendingUp className="w-3 h-3 mr-1" /> +14.5%
             </span>
           </div>
-          <div className="text-sm font-semibold text-on-surface-variant mb-1">Total Revenue</div>
-          <div className="text-3xl font-bold text-on-surface">$128,450</div>
+          <div className="text-sm font-semibold text-on-surface-variant mb-1">Estimated Revenue</div>
+          <div className="text-3xl font-bold text-on-surface">${estimatedRevenue.toLocaleString()}</div>
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
@@ -72,7 +110,7 @@ const AnalyticsPage: React.FC = () => {
             </span>
           </div>
           <div className="text-sm font-semibold text-on-surface-variant mb-1">Active Customers</div>
-          <div className="text-3xl font-bold text-on-surface">3,248</div>
+          <div className="text-3xl font-bold text-on-surface">{activeCustomers.toLocaleString()}</div>
         </div>
 
         <div className="bg-white border border-outline-variant/30 rounded-2xl p-6 shadow-sm">
@@ -84,8 +122,8 @@ const AnalyticsPage: React.FC = () => {
               <TrendingUp className="w-3 h-3 mr-1" /> +2.4%
             </span>
           </div>
-          <div className="text-sm font-semibold text-on-surface-variant mb-1">Conversion Rate</div>
-          <div className="text-3xl font-bold text-on-surface">14.8%</div>
+          <div className="text-sm font-semibold text-on-surface-variant mb-1">AI Conversion Rate</div>
+          <div className="text-3xl font-bold text-on-surface">{conversionRate.toFixed(1)}%</div>
         </div>
 
         <div className="bg-primary border border-primary-container rounded-2xl p-6 shadow-sm text-white relative overflow-hidden">
@@ -97,8 +135,8 @@ const AnalyticsPage: React.FC = () => {
             <div className="text-sm font-bold text-white/80 uppercase tracking-wider">AI Impact</div>
           </div>
           <div className="text-sm font-semibold text-white mb-1 relative z-10">Time Saved by AI</div>
-          <div className="text-3xl font-bold text-white relative z-10">142 hrs</div>
-          <p className="text-xs text-white/70 mt-2 relative z-10">This month alone</p>
+          <div className="text-3xl font-bold text-white relative z-10">{timeSavedHrs} hrs</div>
+          <p className="text-xs text-white/70 mt-2 relative z-10">Based on {totalChats} total chats</p>
         </div>
       </div>
 
