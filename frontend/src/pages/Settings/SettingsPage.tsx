@@ -13,6 +13,9 @@ const SettingsPage: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
+  const [tone, setTone] = useState(80);
+  const [latency, setLatency] = useState(95);
+
   useEffect(() => {
     if (user?.business) {
       setBusinessName(user.business.name || '');
@@ -94,6 +97,7 @@ const SettingsPage: React.FC = () => {
         <div className="flex-1 space-y-8 pb-12">
           
           {/* Business Profile Card */}
+          {activeTab === 'Business Profile' && (
           <div className="bg-white border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden">
             <div className="p-6 border-b border-outline-variant/30">
               <h2 className="text-xl font-bold text-on-surface">Business Profile</h2>
@@ -178,8 +182,10 @@ const SettingsPage: React.FC = () => {
               </button>
             </div>
           </div>
+          )}
 
           {/* Subscription Card */}
+          {activeTab === 'Subscription' && (
           <div className="bg-white border border-primary/20 rounded-2xl shadow-[0_2px_10px_-4px_rgba(59,130,246,0.1)] relative overflow-hidden">
             <div className="absolute top-0 left-0 right-0 h-1 bg-primary"></div>
             <div className="p-6">
@@ -236,8 +242,10 @@ const SettingsPage: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
 
           {/* Team Members Card */}
+          {activeTab === 'Team Members' && (
           <div className="bg-white border border-outline-variant/30 rounded-2xl shadow-sm overflow-hidden">
             <div className="p-6 border-b border-outline-variant/30 flex justify-between items-center">
               <div>
@@ -311,8 +319,10 @@ const SettingsPage: React.FC = () => {
               </table>
             </div>
           </div>
+          )}
 
           {/* AI Personality Card */}
+          {activeTab === 'AI Settings' && (
           <div className="bg-white border-2 border-primary-container rounded-2xl shadow-sm relative overflow-hidden">
             {/* Decorative left accent */}
             <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-primary"></div>
@@ -333,10 +343,19 @@ const SettingsPage: React.FC = () => {
                 <div>
                   <div className="flex justify-between items-center mb-4">
                     <label className="text-sm font-bold text-on-surface">Tone of Voice</label>
-                    <span className="text-xs font-bold text-primary">Professional & Precise</span>
+                    <span className="text-xs font-bold text-primary">
+                      {tone < 33 ? 'Casual' : tone < 66 ? 'Balanced' : 'Professional & Precise'}
+                    </span>
                   </div>
-                  <div className="relative w-full h-3 bg-primary-fixed-dim rounded-full mb-2">
-                    <div className="absolute top-1/2 left-[80%] -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-primary rounded-full shadow-md cursor-pointer border-2 border-white"></div>
+                  <div className="relative w-full mb-2 flex items-center">
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={tone} 
+                      onChange={(e) => setTone(parseInt(e.target.value))}
+                      className="w-full h-3 bg-primary-fixed-dim rounded-full appearance-none cursor-pointer accent-primary" 
+                    />
                   </div>
                   <div className="flex justify-between text-[10px] font-bold text-outline uppercase tracking-wider">
                     <span>Casual</span>
@@ -349,11 +368,19 @@ const SettingsPage: React.FC = () => {
                 <div>
                   <div className="flex justify-between items-center mb-4">
                     <label className="text-sm font-bold text-on-surface">Response Latency</label>
-                    <span className="text-xs font-bold text-secondary">Instant (High Compute)</span>
+                    <span className="text-xs font-bold text-secondary">
+                      {latency < 33 ? 'Slow' : latency < 66 ? 'Average' : 'Instant (High Compute)'}
+                    </span>
                   </div>
-                  <div className="relative w-full h-3 bg-primary-fixed-dim rounded-full mb-2">
-                    <div className="absolute top-0 left-0 h-full bg-primary/20 rounded-l-full w-[95%]"></div>
-                    <div className="absolute top-1/2 left-[95%] -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-secondary rounded-full shadow-md cursor-pointer border-2 border-white"></div>
+                  <div className="relative w-full mb-2 flex items-center">
+                    <input 
+                      type="range" 
+                      min="0" 
+                      max="100" 
+                      value={latency} 
+                      onChange={(e) => setLatency(parseInt(e.target.value))}
+                      className="w-full h-3 bg-primary-fixed-dim rounded-full appearance-none cursor-pointer accent-secondary" 
+                    />
                   </div>
                   <div className="flex justify-between text-[10px] font-bold text-outline uppercase tracking-wider">
                     <span>Slow</span>
@@ -364,6 +391,20 @@ const SettingsPage: React.FC = () => {
               </div>
             </div>
           </div>
+          )}
+
+          {/* Coming Soon Placeholders */}
+          {(activeTab === 'Notifications' || activeTab === 'API Integrations') && (
+            <div className="bg-white border border-outline-variant/30 rounded-2xl shadow-sm p-12 flex flex-col items-center justify-center text-center">
+              <div className="w-16 h-16 bg-surface-container-high rounded-full flex items-center justify-center mb-4">
+                <Sparkles className="w-8 h-8 text-outline" />
+              </div>
+              <h2 className="text-xl font-bold text-on-surface mb-2">{activeTab}</h2>
+              <p className="text-sm text-on-surface-variant max-w-sm">
+                This settings pane is currently under construction. Check back soon for updates!
+              </p>
+            </div>
+          )}
 
         </div>
       </div>
