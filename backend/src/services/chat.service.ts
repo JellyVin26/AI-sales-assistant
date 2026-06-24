@@ -92,18 +92,24 @@ export class ChatService {
     return conversation;
   }
 
-  async takeoverConversation(businessId: string, conversationId: string) {
+  async takeoverConversation(userId: string, conversationId: string) {
+    const business = await this.businessRepository.findByUserId(userId);
+    if (!business) throw new NotFoundError('Business');
+
     const conversation = await this.conversationRepository.findById(conversationId);
     if (!conversation) throw new NotFoundError('Conversation');
-    if (conversation.businessId !== businessId) throw new Error('Unauthorized');
+    if (conversation.businessId !== business.id) throw new Error('Unauthorized');
 
     return this.conversationRepository.updateStatus(conversationId, 'CLOSED');
   }
 
-  async replyToConversation(businessId: string, conversationId: string, message: string) {
+  async replyToConversation(userId: string, conversationId: string, message: string) {
+    const business = await this.businessRepository.findByUserId(userId);
+    if (!business) throw new NotFoundError('Business');
+
     const conversation = await this.conversationRepository.findById(conversationId);
     if (!conversation) throw new NotFoundError('Conversation');
-    if (conversation.businessId !== businessId) throw new Error('Unauthorized');
+    if (conversation.businessId !== business.id) throw new Error('Unauthorized');
 
     const adminMessage = await this.messageRepository.create({
       content: message,
