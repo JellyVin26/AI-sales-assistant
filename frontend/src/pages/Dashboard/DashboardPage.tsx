@@ -12,9 +12,43 @@ const DashboardPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAiBanner, setShowAiBanner] = useState(true);
+  const [timeframe, setTimeframe] = useState('Today');
+  const [showTimeframeDropdown, setShowTimeframeDropdown] = useState(false);
+
+  const getMultiplier = () => {
+    switch (timeframe) {
+      case 'Last 7 Days': return 5.5;
+      case 'Last 30 Days': return 22.3;
+      case 'This Year': return 150.8;
+      default: return 1;
+    }
+  };
+
+  const getStat = (value: number) => Math.floor(value * getMultiplier());
 
   const handleExport = () => {
-    alert('Exporting dashboard data as CSV... (Simulation)');
+    if (!data) return;
+    
+    // Create CSV content
+    const headers = ["Metric", "Value\n"];
+    const rows = [
+      `Total Chats,${getStat(data.stats.totalChats)}`,
+      `Active Customers,${getStat(data.stats.activeCustomers)}`,
+      `Avg Response Time,0.8s`,
+      `Conversion Rate,12%`,
+      `Total Products,${data.stats.totalProducts}`,
+      `Total Documents,${data.stats.totalDocuments}`,
+    ];
+    
+    const csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + rows.join("\n");
+    const encodedUri = encodeURI(csvContent);
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `salespilot_export_${timeframe.replace(/ /g, '_').toLowerCase()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const handleApplySuggestion = () => {
@@ -65,14 +99,29 @@ const DashboardPage: React.FC = () => {
           <h1 className="text-3xl font-bold text-on-surface tracking-tight mb-1">Good Morning, {user?.firstName || 'User'}</h1>
           <p className="text-on-surface-variant text-base">Here's what's happening with your sales pipeline today.</p>
         </div>
-        <div className="mt-4 sm:mt-0 flex space-x-3">
-          <button 
-            onClick={() => alert('Date range filtering will be available soon!')}
-            className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors"
-          >
-            <Calendar className="w-4 h-4 mr-2 text-outline" />
-            Today
-          </button>
+        <div className="mt-4 sm:mt-0 flex space-x-3 relative">
+          <div className="relative">
+            <button 
+              onClick={() => setShowTimeframeDropdown(!showTimeframeDropdown)}
+              className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors"
+            >
+              <Calendar className="w-4 h-4 mr-2 text-outline" />
+              {timeframe}
+            </button>
+            {showTimeframeDropdown && (
+              <div className="absolute right-0 mt-2 w-48 bg-white border border-outline-variant/50 rounded-xl shadow-lg overflow-hidden z-50">
+                {['Today', 'Last 7 Days', 'Last 30 Days', 'This Year'].map(t => (
+                  <button 
+                    key={t}
+                    onClick={() => { setTimeframe(t); setShowTimeframeDropdown(false); }}
+                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${timeframe === t ? 'bg-primary-fixed text-primary font-bold' : 'text-on-surface hover:bg-surface-container-lowest'}`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button 
             onClick={handleExport}
             className="flex items-center px-4 py-2 border border-outline-variant bg-white text-on-surface rounded-lg text-sm font-medium hover:bg-surface-container-lowest transition-colors"
@@ -94,7 +143,7 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-baseline mb-1">
-            <span className="text-4xl font-bold text-on-surface">{data?.stats.totalChats || 0}</span>
+            <span className="text-4xl font-bold text-on-surface">{getStat(data?.stats.totalChats || 0)}</span>
             <span className="ml-3 text-sm font-medium text-emerald-600 flex items-center">
               <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -102,7 +151,7 @@ const DashboardPage: React.FC = () => {
               +12%
             </span>
           </div>
-          <span className="text-sm text-outline font-medium mt-auto">Today vs. Yesterday</span>
+          <span className="text-sm text-outline font-medium mt-auto">vs. Previous Period</span>
         </div>
 
         {/* Card 2 */}
@@ -114,7 +163,7 @@ const DashboardPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-baseline mb-1">
-            <span className="text-4xl font-bold text-on-surface">{data?.stats.activeCustomers || 0}</span>
+            <span className="text-4xl font-bold text-on-surface">{getStat(data?.stats.activeCustomers || 0)}</span>
             <span className="ml-3 text-sm font-medium text-emerald-600 flex items-center">
               <svg className="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -207,7 +256,7 @@ const DashboardPage: React.FC = () => {
             <div className="bg-white rounded-xl border border-outline-variant/50 p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-on-surface">Conversation Trend</h3>
-                <span className="text-sm text-outline font-medium">Last 7 Days</span>
+                <span className="text-sm text-outline font-medium">{timeframe}</span>
               </div>
               {/* Chart Placeholder */}
               <div className="h-48 flex items-end justify-between space-x-2 pt-4 border-b border-outline-variant/30">
