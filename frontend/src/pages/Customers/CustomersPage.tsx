@@ -211,10 +211,19 @@ const CustomersPage: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-2 border-t border-outline-variant/30 bg-surface-bright mt-auto">
-                      <button className="py-3 text-sm font-bold text-primary hover:bg-surface-container transition-colors border-r border-outline-variant/30">
+                      <button 
+                        onClick={() => alert(hasInsight ? 'Opening Action Required flow...' : 'Opening Purchase History...')}
+                        className="py-3 text-sm font-bold text-primary hover:bg-surface-container transition-colors border-r border-outline-variant/30"
+                      >
                         {hasInsight ? 'Action Required' : 'Purchase History'}
                       </button>
-                      <button className="py-3 text-sm font-bold text-primary hover:bg-surface-container transition-colors">
+                      <button 
+                        onClick={() => {
+                          // In a real app, this would use react-router to navigate to the chat page with the conversation ID
+                          window.location.href = '/chat';
+                        }}
+                        className="py-3 text-sm font-bold text-primary hover:bg-surface-container transition-colors"
+                      >
                         View Chat
                       </button>
                     </div>
