@@ -74,11 +74,19 @@ const AnalyticsPage: React.FC = () => {
         </div>
         
         <div className="flex items-center space-x-3">
-          <button className="flex items-center px-4 py-2 bg-surface-container text-on-surface-variant rounded-xl text-sm font-bold hover:bg-surface-container-high transition-colors border border-outline-variant/30">
+          <button 
+            onClick={() => alert('Date range selection coming soon!')}
+            className="flex items-center px-4 py-2 bg-surface-container text-on-surface-variant rounded-xl text-sm font-bold hover:bg-surface-container-high transition-colors border border-outline-variant/30"
+          >
             <Calendar className="w-4 h-4 mr-2" />
             Last 30 Days
           </button>
-          <button className="flex items-center px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-primary-container transition-colors">
+          <button 
+            onClick={() => {
+              alert('Generating Export Report...\\nThis feature will download a CSV/PDF of your analytics once the backend export service is implemented.');
+            }}
+            className="flex items-center px-4 py-2 bg-primary text-white rounded-xl text-sm font-bold shadow-sm hover:bg-primary-container transition-colors"
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </button>
