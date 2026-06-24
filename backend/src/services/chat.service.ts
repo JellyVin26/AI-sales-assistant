@@ -125,13 +125,26 @@ ${context}`;
       { role: 'user', content: currentMessage },
     ];
 
-    const completion = await this.openai.chat.completions.create({
-      model: env.openai.model,
-      messages: chatMessages,
-      temperature: 0.7,
-      max_tokens: 500,
-    });
+    // Check if we have a real API key or a placeholder
+    if (!env.openai.apiKey || env.openai.apiKey === 'your_openai_api_key_here') {
+      console.warn('Using simulated OpenAI response because OPENAI_API_KEY is not configured');
+      // Simulate network delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return `(Simulated AI Response) Hello! Thanks for reaching out. Based on your message "${currentMessage}", I can help you find what you're looking for. Our store has many great products. How can I assist you further today?`;
+    }
 
-    return completion.choices[0]?.message?.content || 'I apologize, I was unable to generate a response. Please try again.';
+    try {
+      const completion = await this.openai.chat.completions.create({
+        model: env.openai.model,
+        messages: chatMessages,
+        temperature: 0.7,
+        max_tokens: 500,
+      });
+
+      return completion.choices[0]?.message?.content || 'I apologize, I was unable to generate a response. Please try again.';
+    } catch (error) {
+      console.error('OpenAI API Error:', error);
+      throw new Error('Failed to generate AI response. Please check your API key configuration.');
+    }
   }
 }
