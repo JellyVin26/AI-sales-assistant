@@ -275,7 +275,7 @@ const DashboardPage: React.FC = () => {
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-bold text-on-surface">Popular Products</h3>
                 <button 
-                  onClick={() => alert('Detailed product analytics will be available in the next update!')}
+                  onClick={() => navigate('/products')}
                   className="text-outline hover:text-on-surface transition-colors"
                 >
                   <MoreHorizontal className="w-5 h-5" />
