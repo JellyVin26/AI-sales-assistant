@@ -7,6 +7,7 @@ const KnowledgeBasePage: React.FC = () => {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -51,6 +52,15 @@ const KnowledgeBasePage: React.FC = () => {
     } catch (err) {
       alert('Failed to delete document');
     }
+  };
+
+  const handleSync = async () => {
+    setIsSyncing(true);
+    // Simulate syncing delay
+    setTimeout(() => {
+      setIsSyncing(false);
+      alert('AI Knowledge Base successfully synchronized!');
+    }, 2000);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -151,10 +161,14 @@ const KnowledgeBasePage: React.FC = () => {
         <div className="w-full lg:w-2/3 flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold text-on-surface">Manage Uploads</h2>
-            <button className="flex items-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary-container transition-colors">
-              <RefreshCcw className="w-4 h-4 mr-2" />
-              Sync AI
-              <span className="ml-2 w-2 h-2 bg-white rounded-full animate-pulse"></span>
+            <button 
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="flex items-center px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:bg-primary-container transition-colors disabled:opacity-70"
+            >
+              <RefreshCcw className={`w-4 h-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+              {isSyncing ? 'Syncing...' : 'Sync AI'}
+              {!isSyncing && <span className="ml-2 w-2 h-2 bg-white rounded-full animate-pulse"></span>}
             </button>
           </div>
 
