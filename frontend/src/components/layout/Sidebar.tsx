@@ -89,6 +89,7 @@ const Sidebar: React.FC = () => {
           Log Out
         </button>
       </div>
+    </div>
   );
 };
 
