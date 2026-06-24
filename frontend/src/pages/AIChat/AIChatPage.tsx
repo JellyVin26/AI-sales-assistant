@@ -206,28 +206,41 @@ const AIChatPage: React.FC = () => {
                  <div className="text-center text-outline text-sm mt-10">No messages in this conversation.</div>
                ) : (
                  messages.map((msg) => (
-                   <div key={msg.id} className={`flex ${msg.role === 'USER' ? 'justify-end' : 'justify-start'}`}>
+                   <div key={msg.id} className={`flex ${msg.role !== 'USER' ? 'justify-end' : 'justify-start'}`}>
                      
-                     {msg.role !== 'USER' && (
-                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 flex-shrink-0 mt-1 border border-outline-variant/30 ${msg.role === 'SYSTEM' ? 'bg-error' : 'bg-primary'}`}>
-                          {msg.role === 'SYSTEM' ? 'YOU' : 'AI'}
+                     {/* Incoming (Customer) Avatar */}
+                     {msg.role === 'USER' && (
+                       <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface-variant text-xs font-bold mr-3 flex-shrink-0 mt-1 border border-outline-variant/30">
+                          {activeConversation.customerName ? activeConversation.customerName.charAt(0).toUpperCase() : '?'}
                        </div>
                      )}
 
-                     <div className={`max-w-[70%] relative ${msg.role !== 'USER' ? 'pl-4' : 'pr-4'}`}>
+                     <div className={`max-w-[70%] relative`}>
                        <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
                          msg.role !== 'USER' 
-                          ? `bg-white border-l-4 ${msg.role === 'SYSTEM' ? 'border-l-error' : 'border-l-primary'} border-t border-r border-b border-outline-variant/20 rounded-tr-none` 
-                          : 'bg-primary border border-primary text-white rounded-tl-none'
+                          ? `bg-primary border-transparent text-white rounded-tr-none` 
+                          : 'bg-white border border-outline-variant/20 rounded-tl-none'
                        }`}>
                          {msg.role !== 'USER' && (
-                           <div className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${msg.role === 'SYSTEM' ? 'text-error' : 'text-primary'}`}>
+                           <div className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${msg.role === 'SYSTEM' ? 'text-error-container' : 'text-primary-fixed'}`}>
                              {msg.role === 'SYSTEM' ? 'Business Owner (You)' : 'SalesPilot AI'}
                            </div>
                          )}
-                         <span className={msg.role !== 'USER' ? 'text-on-surface-variant' : 'text-white'}>{msg.content}</span>
+                         {msg.role === 'USER' && (
+                           <div className="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider mb-2">
+                             {activeConversation.customerName || 'Customer'}
+                           </div>
+                         )}
+                         <span className={msg.role !== 'USER' ? 'text-white' : 'text-on-surface'}>{msg.content}</span>
                        </div>
                      </div>
+
+                     {/* Outgoing (AI/Admin) Avatar */}
+                     {msg.role !== 'USER' && (
+                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold ml-3 flex-shrink-0 mt-1 border border-outline-variant/30 ${msg.role === 'SYSTEM' ? 'bg-error' : 'bg-primary'}`}>
+                          {msg.role === 'SYSTEM' ? 'YOU' : 'AI'}
+                       </div>
+                     )}
 
                    </div>
                  ))
