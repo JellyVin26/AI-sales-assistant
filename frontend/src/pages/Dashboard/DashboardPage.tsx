@@ -279,42 +279,41 @@ const DashboardPage: React.FC = () => {
                 </button>
               </div>
               <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium text-on-surface">Product A (Pro Pack)</span>
-                    <span className="text-outline font-medium">42%</span>
-                  </div>
-                  <div className="w-full bg-surface-container rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: '42%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium text-on-surface">Product B (Basic)</span>
-                    <span className="text-outline font-medium">28%</span>
-                  </div>
-                  <div className="w-full bg-surface-container rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: '28%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium text-on-surface">Cloud Add-on</span>
-                    <span className="text-outline font-medium">15%</span>
-                  </div>
-                  <div className="w-full bg-surface-container rounded-full h-2">
-                    <div className="bg-primary h-2 rounded-full" style={{ width: '15%' }}></div>
-                  </div>
-                </div>
-                <div>
-                  <div className="flex justify-between text-sm mb-2">
-                    <span className="font-medium text-on-surface">Others</span>
-                    <span className="text-outline font-medium">15%</span>
-                  </div>
-                  <div className="w-full bg-surface-container rounded-full h-2">
-                    <div className="bg-outline-variant h-2 rounded-full" style={{ width: '15%' }}></div>
-                  </div>
-                </div>
+                {!data || data.popularProducts.length === 0 ? (
+                  <div className="text-center text-sm text-outline">No products available yet.</div>
+                ) : (
+                  <>
+                    {data.popularProducts.map((product) => (
+                      <div key={product.id}>
+                        <div className="flex justify-between text-sm mb-2">
+                          <span className="font-medium text-on-surface">{product.name}</span>
+                          <span className="text-outline font-medium">{product.mentionCount}%</span>
+                        </div>
+                        <div className="w-full bg-surface-container rounded-full h-2">
+                          <div className="bg-primary h-2 rounded-full" style={{ width: `${product.mentionCount}%` }}></div>
+                        </div>
+                      </div>
+                    ))}
+                    {(() => {
+                      const totalPercentage = data.popularProducts.reduce((acc, p) => acc + p.mentionCount, 0);
+                      const othersPercentage = Math.max(0, 100 - totalPercentage);
+                      if (othersPercentage > 0) {
+                        return (
+                          <div>
+                            <div className="flex justify-between text-sm mb-2">
+                              <span className="font-medium text-on-surface">Others</span>
+                              <span className="text-outline font-medium">{othersPercentage}%</span>
+                            </div>
+                            <div className="w-full bg-surface-container rounded-full h-2">
+                              <div className="bg-outline-variant h-2 rounded-full" style={{ width: `${othersPercentage}%` }}></div>
+                            </div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    })()}
+                  </>
+                )}
               </div>
             </div>
           </div>

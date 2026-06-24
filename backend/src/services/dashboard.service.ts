@@ -41,7 +41,14 @@ export class DashboardService {
         totalDocuments: documents.length,
       },
       topQuestions: [], // Will be implemented with analytics
-      popularProducts: [], // Will be implemented with analytics
+      popularProducts: products.items.slice(0, 4).map((p, index) => {
+        const mockCounts = [42, 28, 15, 15]; // Percentages
+        return {
+          id: p.id,
+          name: p.name,
+          mentionCount: mockCounts[index] || 5
+        };
+      }),
       recentConversations: recentConversations.map((c) => ({
         id: c.id,
         customerName: c.customerName,
