@@ -11,5 +11,7 @@ router.post('/:businessId/message', sendMessageValidation, validate, chatControl
 // Authenticated endpoints for business owners
 router.get('/conversations', authenticate, chatController.getConversations);
 router.get('/conversations/:id', authenticate, chatController.getConversation);
+router.patch('/conversations/:id/takeover', authenticate, chatController.takeoverConversation);
+router.post('/conversations/:id/reply', authenticate, chatController.replyToConversation);
 
 export { router as chatRoutes };

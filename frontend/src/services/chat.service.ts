@@ -18,4 +18,14 @@ export const chatService = {
     const response = await api.get<ApiResponse<Conversation>>(`/chat/conversations/${id}`);
     return response.data.data;
   },
+
+  takeoverConversation: async (id: string): Promise<Conversation> => {
+    const response = await api.patch<ApiResponse<Conversation>>(`/chat/conversations/${id}/takeover`);
+    return response.data.data;
+  },
+
+  replyToConversation: async (id: string, message: string): Promise<any> => {
+    const response = await api.post<ApiResponse<any>>(`/chat/conversations/${id}/reply`, { message });
+    return response.data.data;
+  },
 };

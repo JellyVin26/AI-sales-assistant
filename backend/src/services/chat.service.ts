@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { ConversationRepository, MessageRepository, ProductRepository, DocumentRepository, BusinessRepository } from '../repositories';
 import { SendMessageRequest, ChatResponse } from '../dtos';
 import { NotFoundError } from '../exceptions';
-import { env } from '../config';
+import { env, prisma } from '../config';
 
 export class ChatService {
   private conversationRepository: ConversationRepository;
@@ -36,11 +36,24 @@ export class ChatService {
     }
 
     // Save user message
-    await this.messageRepository.create({
+    const userMessage = await this.messageRepository.create({
       content: data.message,
       role: 'USER',
       conversation: { connect: { id: conversation.id } },
     });
+
+    // If conversation is closed (human takeover), AI should not respond
+    if (conversation.status === 'CLOSED') {
+      return {
+        conversationId: conversation.id,
+        message: {
+          id: userMessage.id,
+          content: userMessage.content,
+          role: userMessage.role,
+          createdAt: userMessage.createdAt,
+        },
+      };
+    }
 
     // Build context
     const context = await this.buildContext(businessId);
@@ -77,6 +90,39 @@ export class ChatService {
     const conversation = await this.conversationRepository.findById(conversationId);
     if (!conversation) throw new NotFoundError('Conversation');
     return conversation;
+  }
+
+  async takeoverConversation(businessId: string, conversationId: string) {
+    const conversation = await this.conversationRepository.findById(conversationId);
+    if (!conversation) throw new NotFoundError('Conversation');
+    if (conversation.businessId !== businessId) throw new Error('Unauthorized');
+
+    return this.conversationRepository.updateStatus(conversationId, 'CLOSED');
+  }
+
+  async replyToConversation(businessId: string, conversationId: string, message: string) {
+    const conversation = await this.conversationRepository.findById(conversationId);
+    if (!conversation) throw new NotFoundError('Conversation');
+    if (conversation.businessId !== businessId) throw new Error('Unauthorized');
+
+    const adminMessage = await this.messageRepository.create({
+      content: message,
+      role: 'SYSTEM',
+      conversation: { connect: { id: conversationId } },
+    });
+
+    // Update conversation's updatedAt timestamp
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { updatedAt: new Date() }
+    });
+
+    return {
+      id: adminMessage.id,
+      content: adminMessage.content,
+      role: adminMessage.role,
+      createdAt: adminMessage.createdAt,
+    };
   }
 
   private async buildContext(businessId: string): Promise<string> {

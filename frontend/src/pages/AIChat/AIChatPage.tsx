@@ -57,9 +57,28 @@ const AIChatPage: React.FC = () => {
     }
   };
 
-  const handleSendReply = () => {
-    alert('Admin reply functionality requires a new backend endpoint. Currently only AI can respond!');
-    setReplyText('');
+  const handleTakeover = async () => {
+    if (!activeConversation) return;
+    try {
+      const updatedConv = await chatService.takeoverConversation(activeConversation.id);
+      setActiveConversation(updatedConv);
+      setConversations(conversations.map(c => c.id === updatedConv.id ? updatedConv : c));
+    } catch (err) {
+      console.error('Failed to takeover conversation', err);
+      alert('Failed to takeover conversation');
+    }
+  };
+
+  const handleSendReply = async () => {
+    if (!activeConversation || !replyText.trim()) return;
+    try {
+      const newMsg = await chatService.replyToConversation(activeConversation.id, replyText);
+      setMessages([...messages, newMsg]);
+      setReplyText('');
+    } catch (err) {
+      console.error('Failed to send reply', err);
+      alert('Failed to send reply');
+    }
   };
 
   const filteredConversations = conversations.filter(conv => {
@@ -167,7 +186,7 @@ const AIChatPage: React.FC = () => {
                 </div>
               </div>
               <button 
-                onClick={() => alert('Takeover feature coming soon!')}
+                onClick={handleTakeover}
                 className="flex items-center px-4 py-2 bg-error text-white rounded-lg text-sm font-bold hover:bg-on-error-container transition-colors shadow-sm"
               >
                 <User className="w-4 h-4 mr-2" />
@@ -190,19 +209,21 @@ const AIChatPage: React.FC = () => {
                    <div key={msg.id} className={`flex ${msg.role === 'USER' ? 'justify-end' : 'justify-start'}`}>
                      
                      {msg.role !== 'USER' && (
-                       <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold mr-3 flex-shrink-0 mt-1 border border-outline-variant/30">
-                          AI
+                       <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 flex-shrink-0 mt-1 border border-outline-variant/30 ${msg.role === 'SYSTEM' ? 'bg-error' : 'bg-primary'}`}>
+                          {msg.role === 'SYSTEM' ? 'YOU' : 'AI'}
                        </div>
                      )}
 
                      <div className={`max-w-[70%] relative ${msg.role !== 'USER' ? 'pl-4' : 'pr-4'}`}>
                        <div className={`p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
                          msg.role !== 'USER' 
-                          ? 'bg-white border-l-4 border-l-primary border-t border-r border-b border-outline-variant/20 rounded-tr-none' 
+                          ? `bg-white border-l-4 ${msg.role === 'SYSTEM' ? 'border-l-error' : 'border-l-primary'} border-t border-r border-b border-outline-variant/20 rounded-tr-none` 
                           : 'bg-primary border border-primary text-white rounded-tl-none'
                        }`}>
                          {msg.role !== 'USER' && (
-                           <div className="text-[10px] font-bold text-primary uppercase tracking-wider mb-2">SalesPilot AI</div>
+                           <div className={`text-[10px] font-bold uppercase tracking-wider mb-2 ${msg.role === 'SYSTEM' ? 'text-error' : 'text-primary'}`}>
+                             {msg.role === 'SYSTEM' ? 'Business Owner (You)' : 'SalesPilot AI'}
+                           </div>
                          )}
                          <span className={msg.role !== 'USER' ? 'text-on-surface-variant' : 'text-white'}>{msg.content}</span>
                        </div>

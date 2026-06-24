@@ -35,3 +35,26 @@ export const getConversation = async (req: AuthRequest, res: Response, next: Nex
     next(error);
   }
 };
+
+export const takeoverConversation = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const result = await chatService.takeoverConversation(req.userId!, req.params.id as string);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const replyToConversation = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { message } = req.body;
+    if (!message) {
+      res.status(400).json({ success: false, message: 'Message content is required' });
+      return;
+    }
+    const result = await chatService.replyToConversation(req.userId!, req.params.id as string, message);
+    res.json({ success: true, data: result });
+  } catch (error) {
+    next(error);
+  }
+};
