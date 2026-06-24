@@ -15,6 +15,53 @@ const ProductsPage: React.FC = () => {
   const [editForm, setEditForm] = useState<Partial<Product> & { imageUrl?: string }>({});
   const [isSaving, setIsSaving] = useState(false);
 
+  // AI Insights State
+  const lowStockProduct = React.useMemo(() => {
+    return [...products].sort((a, b) => a.stock - b.stock).find(p => p.stock > 0);
+  }, [products]);
+
+  const trendingCategory = React.useMemo(() => {
+    const categories = products.map(p => p.category).filter(Boolean);
+    if (categories.length > 0) {
+      return categories.sort((a,b) => categories.filter(v => v===a).length - categories.filter(v => v===b).length).pop();
+    }
+    return null;
+  }, [products]);
+
+  const priceOptimizationProduct = React.useMemo(() => {
+    if (products.length > 0) {
+      return products[0]; // Deterministic so it doesn't jump on re-renders
+    }
+    return null;
+  }, [products]);
+
+  const handleQuickOrder = async () => {
+    if (!lowStockProduct) return;
+    try {
+      const updated = await productService.update(lowStockProduct.id, {
+        stock: lowStockProduct.stock + 100
+      });
+      setProducts(products.map(p => p.id === updated.id ? updated : p));
+      alert(`Successfully ordered 100 units of ${lowStockProduct.name}`);
+    } catch (err) {
+      alert('Failed to place order.');
+    }
+  };
+
+  const handleApplyPriceChange = async () => {
+    if (!priceOptimizationProduct) return;
+    try {
+      const newPrice = Number((Number(priceOptimizationProduct.price) * 1.05).toFixed(2));
+      const updated = await productService.update(priceOptimizationProduct.id, {
+        price: newPrice
+      });
+      setProducts(products.map(p => p.id === updated.id ? updated : p));
+      alert(`Successfully increased price of ${priceOptimizationProduct.name} to $${newPrice}`);
+    } catch (err) {
+      alert('Failed to update price.');
+    }
+  };
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
@@ -274,17 +321,17 @@ const ProductsPage: React.FC = () => {
                   <span>AI Stock Alert</span>
                 </div>
                 <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
-                  {(() => {
-                    const lowStockProduct = [...products].sort((a, b) => a.stock - b.stock).find(p => p.stock > 0);
-                    if (lowStockProduct) {
-                      return <>The <strong className="text-on-surface">{lowStockProduct.name}</strong> is running low with only {lowStockProduct.stock} units left. Consider restock order now.</>;
-                    }
-                    return "All products are well-stocked. No immediate restock needed.";
-                  })()}
+                  {lowStockProduct ? (
+                    <>The <strong className="text-on-surface">{lowStockProduct.name}</strong> is running low with only {lowStockProduct.stock} units left. Consider restock order now.</>
+                  ) : (
+                    "All products are well-stocked. No immediate restock needed."
+                  )}
                 </p>
-                <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
-                  Quick Order <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
+                {lowStockProduct && (
+                  <button onClick={handleQuickOrder} className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
+                    Quick Order <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                )}
               </div>
 
               {/* Sales Opportunity */}
@@ -294,18 +341,17 @@ const ProductsPage: React.FC = () => {
                   <span>Sales Opportunity</span>
                 </div>
                 <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
-                  {(() => {
-                    const categories = products.map(p => p.category).filter(Boolean);
-                    if (categories.length > 0) {
-                      const mostCommonCategory = categories.sort((a,b) => categories.filter(v => v===a).length - categories.filter(v => v===b).length).pop();
-                      return <>Products in the <strong className="text-on-surface">{mostCommonCategory}</strong> category are trending up 15%. Boost ad spend on active listings.</>;
-                    }
-                    return "Market trends are stable. Continue current campaigns.";
-                  })()}
+                  {trendingCategory ? (
+                    <>Products in the <strong className="text-on-surface">{trendingCategory}</strong> category are trending up 15%. Boost ad spend on active listings.</>
+                  ) : (
+                    "Market trends are stable. Continue current campaigns."
+                  )}
                 </p>
-                <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
-                  View Campaign <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
+                {trendingCategory && (
+                  <button onClick={() => alert('Navigating to Ad Campaign Manager... (Coming Soon)')} className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
+                    View Campaign <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                )}
               </div>
 
               {/* Price Optimization */}
@@ -315,17 +361,17 @@ const ProductsPage: React.FC = () => {
                   <span>Price Optimization</span>
                 </div>
                 <p className="text-sm text-on-surface-variant leading-relaxed mb-4">
-                  {(() => {
-                    if (products.length > 0) {
-                      const randomProduct = products[Math.floor(Math.random() * products.length)];
-                      return <>Price for <strong className="text-on-surface">{randomProduct.name}</strong> is 5% lower than competitors. Marginal increase recommended.</>;
-                    }
-                    return "Pricing is currently optimal across all active product lines.";
-                  })()}
+                  {priceOptimizationProduct ? (
+                    <>Price for <strong className="text-on-surface">{priceOptimizationProduct.name}</strong> is 5% lower than competitors. Marginal increase recommended.</>
+                  ) : (
+                    "Pricing is currently optimal across all active product lines."
+                  )}
                 </p>
-                <button className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
-                  Apply Change <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
+                {priceOptimizationProduct && (
+                  <button onClick={handleApplyPriceChange} className="text-sm font-bold text-primary flex items-center hover:text-primary-container transition-colors">
+                    Apply Change <ChevronRight className="w-4 h-4 ml-1" />
+                  </button>
+                )}
               </div>
             </div>
           )}
